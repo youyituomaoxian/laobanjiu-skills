@@ -1,0 +1,8 @@
+# Output files
+output/*.html
+output/*.json
+output/素材输出_*/
+
+# Python cache
+__pycache__/
+*.pyc
