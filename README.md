@@ -153,6 +153,36 @@ compare A/B and C/D
 
 ---
 
+## 🎨 ui-pipeline — 三阶 UI 设计流水线
+
+taste-skill（审美定调）→ UI UX Pro Max（设计系统）→ shadcn/ui（组件落地），支持 6 种灵活模式按需组合。
+
+### 6 种工作模式
+
+| 模式 | 触发条件 | 执行阶段 |
+|------|---------|---------|
+| A | 美化现有页面 | 仅 taste |
+| B | 只要设计规范 | 仅 uupm |
+| C | 设计→代码 | 仅 shadcn |
+| D | 做设计系统 | taste + uupm |
+| E | 做页面（产品类型已知） | uupm + shadcn |
+| F | 从零设计完整页面 | 三阶全跑 |
+
+### 触发方式
+```
+"帮我设计一个注塑机管理系统的设备信息主页"
+"帮我设计一套科技类小程序设计规范，包含组件"
+"帮我把这个页面做得更有质感"
+```
+
+### 核心流程
+
+1. **taste-skill 审美定调** — 根据产品类型自动匹配 VARIANCE / DENSITY / MOTION 三参数，锁定审美方向
+2. **UI UX Pro Max 设计系统** — 生成行业色板、字体配对、UI 风格、Anti-patterns 检测，输出设计 Token
+3. **shadcn/ui 组件落地** — 将设计 Token 转化为 React/Tailwind 组件代码，支持 Web / 小程序 / 移动端
+
+---
+
 ## 仓库结构规范
 
 ```
@@ -165,11 +195,15 @@ laobanjiu-skills/
 │   ├── README.md       → 详细说明
 │   ├── scripts/        → Python 脚本
 │   └── reference/      → 分析框架参考
-├── hot-compare/        ← GitHub 项目对比 Skill（新增）
+├── hot-compare/        ← GitHub 项目对比 Skill
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则
 │   ├── README.md       → 详细说明
 │   └── reference/      → 对比方法论参考
+├── ui-pipeline/        ← UI 三阶设计流水线
+│   ├── SKILL.md        → Agent Skill 定义
+│   ├── CLAUDE.md       → AI 项目规则
+│   └── reference/      → taste-skill 参数手册
 └── （更多 Skill 可扩展）
 ```
 
