@@ -38,7 +38,7 @@ python scripts/fetch_repo_info.py owner/repo
 |------|-------------|-------------|
 | 输入 | 1 个项目 | 2-5 个项目 |
 | 分析框架 | 5 块（是什么/上手/任务/对比/暗坑） | 5 模块（深解/矩阵/场景/串联/路径） |
-| 输出 | 长页面 + 5 卡片 | 对比型 HTML + 对比型卡片 + 素材 |
+| 输出 | 长页 HTML + 海报卡片 PNG + 素材 | 长页 HTML + 海报卡片 PNG + 素材 |
 | 数据获取 | fetch_repo_info.py × 1 | fetch_repo_info.py × N |
 | README | web_fetch × 1 | web_fetch × N（并发） |
 

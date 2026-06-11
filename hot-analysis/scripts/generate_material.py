@@ -184,10 +184,11 @@ def create_material_dir(projects: list[dict], generated_at: str) -> Path:
 
     # 子目录
     html_dir = material_dir / "【HTML报告】"
+    poster_dir = material_dir / "【海报PNG】"
     prompt_dir = material_dir / "【项目提示词】"
     script_dir = material_dir / "【口播文案】"
     cover_dir = material_dir / "【封面提示词】"
-    for d in [html_dir, prompt_dir, script_dir, cover_dir]:
+    for d in [html_dir, poster_dir, prompt_dir, script_dir, cover_dir]:
         d.mkdir(exist_ok=True)
 
     # 复制最新 HTML
