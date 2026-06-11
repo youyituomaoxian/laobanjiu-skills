@@ -148,7 +148,7 @@ compare A/B and C/D
 
 ### 输出
 - 🌐 对比型 HTML 报告（5 模块锚点导航）
-- 🃏 对比型信息卡片（自适应高度）
+- 🃏 海报级卡片 PNG（1080×810 固定画布，6 张）
 - 📦 科普素材（封面提示词 + 对比解说口播）
 
 ---
@@ -200,6 +200,8 @@ laobanjiu-skills/
 │   ├── CLAUDE.md       → AI 项目规则
 │   ├── README.md       → 详细说明
 │   └── reference/      → 对比方法论参考
+├── hot-material/        ← 素材生成 Skill
+│   └── SKILL.md         → Agent Skill 定义
 ├── ui-pipeline/        ← UI 三阶设计流水线
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则
