@@ -8,6 +8,8 @@
 
 一条指令，**三种模式**：抓取热门趋势、指定项目深度分析、一键生成科普素材。全部输出**带交互的深色极简风 HTML 报告**。
 
+> v2 更新：单项目分析新增 README 内容获取 + 分析深度选择 + 双输出（HTML 长页面 + 自适应卡片）
+
 ### 核心能力
 
 | 模式 | 触发方式 | 产出 |
@@ -113,18 +115,51 @@ hot-analysis/
 
 ---
 
+## 🔬 hot-compare — GitHub 项目横向对比 Skill
+
+一条指令，对比 2-5 个 GitHub 项目，按 **5 模块优化版方法论** 一步到位输出对比报告 + 卡片 + 素材。
+
+### 5 模块结构
+
+| 模块 | 内容 | 让你获得什么 |
+|------|------|------------|
+| ① 单项深解 | 每项目 7 项分析（+上手路径）| 彻底了解每个项目 |
+| ② 矩阵对比 | 10 行表格 + 决策指引 | 快速做出选型决定 |
+| ③ 场景对抗 | 3 个真实场景下的操作对比 | 学会实际使用 |
+| ④ 组合串联 | 原生组合 + 非兼容串联方案 | 学会多工具联动 |
+| ⑤ 高手路径 | 入门→会用→精通路线 + CheatSheet | 知道下一步该学什么 |
+
+### 触发方式
+```
+对比 owner1/repo1 vs owner2/repo2 vs owner3/repo3
+compare A/B and C/D
+横向对比：vuejs/core reactjs/react
+```
+
+### 输出
+- 🌐 对比型 HTML 报告（5 模块锚点导航）
+- 🃏 对比型信息卡片（自适应高度）
+- 📦 科普素材（封面提示词 + 对比解说口播）
+
+---
+
 ## 仓库结构规范
 
 ```
 laobanjiu-skills/
 ├── README.md           ← 本文件，项目首页
 ├── .gitignore
-├── hot-analysis/       ← 一个 Skill 一个子目录
-│   ├── SKILL.md        → Agent Skill 定义（AI 读取）
-│   ├── CLAUDE.md       → 项目级 AI 规则
-│   ├── README.md       → 人类可读的详细说明
+├── hot-analysis/       ← GitHub 项目分析 Skill
+│   ├── SKILL.md        → Agent Skill 定义
+│   ├── CLAUDE.md       → AI 项目规则
+│   ├── README.md       → 详细说明
 │   ├── scripts/        → Python 脚本
-│   └── reference/      → 参考文档
+│   └── reference/      → 分析框架参考
+├── hot-compare/        ← GitHub 项目对比 Skill（新增）
+│   ├── SKILL.md        → Agent Skill 定义
+│   ├── CLAUDE.md       → AI 项目规则
+│   ├── README.md       → 详细说明
+│   └── reference/      → 对比方法论参考
 └── （更多 Skill 可扩展）
 ```
 

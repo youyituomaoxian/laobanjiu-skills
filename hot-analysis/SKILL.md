@@ -45,16 +45,14 @@ cd $PROJECT_ROOT && python scripts/github_trending_weekly.py
 
 ---
 
-## 模式二：单项目分析（指定分析）
+## 模式二：单项目分析（指定分析）v2
 
-用户指定 GitHub 上的任意项目进行深度分析，生成对应的交互 HTML 报告。
+用户指定 GitHub 上的任意项目进行深度分析，生成对应的交互 HTML 报告和自适应卡片。
 
 ### 触发方式
-用户输入格式示例：
 - 「分析项目 vuejs/core」
 - 「分析项目 https://github.com/facebook/react」
 - 「帮我分析一下 owner/repo」
-- 「分析项目 owner/repo」
 
 ### 执行步骤
 
@@ -63,43 +61,41 @@ cd $PROJECT_ROOT && python scripts/github_trending_weekly.py
 - URL 格式：`https://github.com/owner/repo` → 提取 owner, repo
 - 短格式：`owner/repo` → 直接使用
 
-#### 2. 获取项目数据
+#### 2. 获取元数据
 ```bash
 cd $PROJECT_ROOT && python scripts/fetch_repo_info.py owner/repo
 ```
-脚本会输出项目元数据 JSON 到 `output/` 目录。
+输出 `output/_repo_owner_repo.json`（stars/forks/language/description）
 
-#### 3. 读取项目数据
-读取生成的 `_repo_owner_repo.json`，了解项目基本信息：
-- 项目名称、Star 数、Fork 数
-- 编程语言、描述
+#### 3. 获取项目实际内容（v2 新增）
+用 web_fetch 获取项目 README.md（GitHub raw URL），了解真实的安装方式、功能说明、API 用法。若 raw URL 不可达，改用 GitHub 页面 web_fetch。
 
-#### 4. AI 撰写深度分析
-参照「软件工具学习.md」的 5 块框架，AI 为该项目撰写完整分析：
-1. **这是什么** — 一句话说清 + 消灭了什么麻烦 + 最适合的 3 个场景 + 绝对不适合做的事
-2. **快速上手** — 最简安装命令 + 第一个成功操作验证 + 实用技巧
-3. **真实任务** — 3 个典型任务（以前怎么做 vs 用这个工具怎么做）
-4. **同类对比** — 相似工具的选择建议 + 黄金搭档推荐
-5. **暗坑与进阶信号** — 反人类设计 + 常见误区 + 下一步学习资源
+#### 4. 询问分析侧重点（v2 新增）
+向用户提问选择：
+- [1] 全面深度分析（5 块均衡）
+- [2] 重点：怎么用（放大快速上手和真实任务）
+- [3] 重点：同类对比（放大同类对比和暗坑）
+- [4] 快速概览（精简版）
+- [5] 自定义
 
-#### 5. 生成交互 HTML 报告（单项目长页面）
-AI 生成单项目交互 HTML 报告，使用 Taste-Skill + UI UX PRO MAX 双设计系统：
-- 深色极简主题，支持亮色/暗色切换
-- **通篇长页面连续展示** 5 块分析内容（无 Tab 切换），section 间用视觉分隔
-- 顶部带锚点导航菜单或浮动侧边索引，方便跳转各块
-- 统计数字、回到顶部（scroll > 600px 显示）、响应式布局
-- **文件名格式**：`output/analyze_owner_repo_YYYYMMDD_HHMM.html` + 更新 `latest.html`
+#### 5. AI 撰写深度分析
+基于 README 真实内容，按 5 块框架撰写（参照「软件工具学习.md」）。
 
-#### 6. 向用户汇报
-- 项目名称 + Star 数 + 一句话简介
-- HTML 报告文件路径
+#### 6. 生成双输出（v2 新增）
+- **输出 A**：HTML 长页面 → `output/analyze_owner_repo_YYYYMMDD_HHMM.html` + 更新 `latest.html`
+- **输出 B**：自适应卡片 → `output/analyze_owner_repo_cards_YYYYMMDD_HHMM.html`
+- **输出文件夹**：HTML 和卡片放入 `output/项目名_时间/` 子目录
+
+#### 7. 向用户汇报
+- 项目名 + Star + 简介 + 双输出路径
+- 询问是否继续生成素材
 
 ---
 
 ## 通用输出规范
-- **模式一（批量分析）**：Tab 切换展示 5 块分析内容（这是什么 / 快速上手 / 真实任务 / 同类对比 / 暗坑与进阶），CSS-only radio hack
-- **模式二（单项目分析）**：通篇长页面连续展示 5 块分析内容，锚点导航跳转
-- 两种模式共用 Taste-Skill + UI UX PRO MAX 双设计系统
-- 深色极简主题，支持亮色/暗色切换
-- 统计数字滚动动画、回到顶部、响应式布局
+- **模式一（批量）**：Tab 切换 5 块分析内容（CSS-only radio hack）
+- **模式二（单项目 v2）**：HTML 长页面锚点导航 + 自适应卡片，双输出
+- 共用设计系统：Taste-Skill + UI UX PRO MAX
+- 深色极简主题 · 统计动画 · 回到顶部 · 响应式 · prefers-reduced-motion
 - 分析框架参照「软件工具学习.md」5 块结构
+- 输出文件夹规范：`output/项目名_时间/`
