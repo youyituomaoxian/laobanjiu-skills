@@ -143,6 +143,30 @@ compare A/B and C/D
 
 ---
 
+## 🎨 ui-pipeline — 三阶 UI 设计流水线
+
+taste-skill（审美定调）→ UI UX Pro Max（设计系统）→ shadcn/ui（组件落地），支持 6 种灵活模式。
+
+### 工作模式
+
+| 模式 | 触发条件 | 执行阶段 |
+|------|---------|---------|
+| A | 美化现有页面 | 仅 taste |
+| B | 只要设计规范 | 仅 uupm |
+| C | 设计→代码 | 仅 shadcn |
+| D | 做设计系统 | taste + uupm |
+| E | 做页面（产品类型已知） | uupm + shadcn |
+| F | 从零设计完整页面 | 三阶全跑 |
+
+### 触发方式
+```
+"帮我设计一个注塑机管理系统的设备信息主页"
+"帮我设计一套科技类小程序设计规范，包含组件"
+"帮我把这个页面做得更有质感"
+```
+
+---
+
 ## 仓库结构规范
 
 ```
@@ -160,6 +184,10 @@ laobanjiu-skills/
 │   ├── CLAUDE.md       → AI 项目规则
 │   ├── README.md       → 详细说明
 │   └── reference/      → 对比方法论参考
+├── ui-pipeline/         ← UI 三阶设计流水线（新增）
+│   ├── SKILL.md        → Agent Skill 定义
+│   ├── CLAUDE.md       → AI 项目规则
+│   └── reference/      → taste-skill 参数手册
 └── （更多 Skill 可扩展）
 ```
 
