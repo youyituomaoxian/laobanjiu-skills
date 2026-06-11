@@ -83,8 +83,14 @@ cd $PROJECT_ROOT && python scripts/fetch_repo_info.py owner/repo
 
 #### 6. 生成双输出（v2 新增）
 - **输出 A**：HTML 长页面 → `output/analyze_owner_repo_YYYYMMDD_HHMM.html` + 更新 `latest.html`
-- **输出 B**：自适应卡片 → `output/analyze_owner_repo_cards_YYYYMMDD_HHMM.html`
-- **输出文件夹**：HTML 和卡片放入 `output/项目名_时间/` 子目录
+- **输出 B**：海报级卡片 HTML → PNG
+  - HTML 文件：`output/analyze_owner_repo_cards_YYYYMMDD_HHMM.html`
+  - **固定画布 1080×810 (4:3)**，无响应式，禁用 `clamp()`
+  - 海报字体层级：90px/72px/56px/24px/18px/14px/13px（见 hot-compare 字体表）
+  - CSS 关键：`.deco{position:absolute}` `.poster>*:not(.noise):not(.deco){position:relative;z-index:3}` `.ftr{margin-top:auto}`
+  - 生成 HTML 后**必须运行** `python scripts/export_posters.py <html_path>` 导出 2160×1620px PNG
+  - 卡片内容与口播稿对应：卡1 封面→卡2 是什么→卡3 怎么用→卡4 对比→卡5 暗坑
+- **输出文件夹**：HTML、卡片、PNG 放入 `output/项目名_时间/` 子目录
 
 #### 7. 向用户汇报
 - 项目名 + Star + 简介 + 双输出路径
@@ -92,10 +98,21 @@ cd $PROJECT_ROOT && python scripts/fetch_repo_info.py owner/repo
 
 ---
 
-## 通用输出规范
+## 输出规范
+
+### 长页 HTML 报告
 - **模式一（批量）**：Tab 切换 5 块分析内容（CSS-only radio hack）
-- **模式二（单项目 v2）**：HTML 长页面锚点导航 + 自适应卡片，双输出
-- 共用设计系统：Taste-Skill + UI UX PRO MAX
-- 深色极简主题 · 统计动画 · 回到顶部 · 响应式 · prefers-reduced-motion
+- **模式二（单项目 v2）**：HTML 长页面锚点导航
+- 设计系统：Taste-Skill + UI UX PRO MAX
+- 深色极简 · 统计动画 · 回到顶部 · 响应式 · prefers-reduced-motion
+
+### 海报卡片（新增）
+- **固定 1080×810 画布**，不使用 `clamp()`、不响应式
+- 字体全部按海报尺度 px 定值（封面 90px / 身份卡 72px / 副标题 24px / 正文 18px / pills 14px）
+- 颜色：十六进制直写（`#e2e8f0` / `#94a3b8` / `#64748b`），禁止 `rgba(255,255,255,.xx)`
+- CSS 关键约束：`.deco{position:absolute}` `.poster>*:not(.noise):not(.deco){position:relative;z-index:3}`
+- 生成后运行 `python scripts/export_posters.py` 导出 2160×1620px PNG
+
+### 通用
 - 分析框架参照「软件工具学习.md」5 块结构
 - 输出文件夹规范：`output/项目名_时间/`
