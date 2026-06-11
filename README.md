@@ -200,8 +200,6 @@ laobanjiu-skills/
 │   ├── CLAUDE.md       → AI 项目规则
 │   ├── README.md       → 详细说明
 │   └── reference/      → 对比方法论参考
-├── hot-material/        ← 素材生成 Skill
-│   └── SKILL.md         → Agent Skill 定义
 ├── ui-pipeline/        ← UI 三阶设计流水线
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则
