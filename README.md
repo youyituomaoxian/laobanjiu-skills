@@ -184,6 +184,72 @@ taste-skill（审美定调）→ UI UX Pro Max（设计系统）→ shadcn/ui（
 
 ---
 
+## 🚀 wechat-publisher — 公众号发布一条龙
+
+一条指令，**三模式路由**：全流程一条龙 / 单环节独立执行 / 断点续传。自包含 format.py + publish.py 核心引擎 + 3 套排版主题，一次 clone 即可使用。
+
+### 三模式路由
+
+| 模式 | 触发词示例 | 执行逻辑 |
+|------|-----------|---------|
+| 🔄 **全流程** | 「发公众号」「一条龙」「帮我发一篇」 | 写稿→配图→审稿→排版→发布检查→推草稿箱 6 步串联 |
+| 🎯 **单环节** | 「帮我排版」「审一下稿」「换个主题」「推送」 | 只执行指定步骤，检查前置条件后原地停止 |
+| 🔁 **恢复模式** | 「接着上次」「继续发」 | 自动检测 article.yaml 缺失字段，从断点继续 |
+
+### 6 阶段管线
+
+| 阶段 | 产出 | 关键命令 |
+|------|------|---------|
+| ① 写稿 | article.md | 底部支持 khazix-writer 深度分析文风 |
+| ② 配图 | cover.jpg + imgs/ | 封面 900×383，配图 JPG/PNG（不支持 WebP） |
+| ③ 审稿 | 审稿清单 | 标题/摘要/正文/结构 4 维度检查 |
+| ④ 排版 | article.html | `format.py --theme teal-pro` 转微信兼容 inline CSS |
+| ⑤ 发布检查 | 环境验证 | `publish.py check` — 凭证 + IP 白名单 |
+| ⑥ 推草稿箱 | media_id | `publish.py --account 1 full` 上传封面+配图+建草稿 |
+
+### 排版主题
+
+| 主题 | 风格 | 主色 |
+|------|------|------|
+| **teal-pro** | h2 底部装饰线 + 卡片式引用 + 霓虹代码块 | #0D9488 |
+| taste-blue | 经典蓝增强，圆角卡片 + 阴影 | #1A6DB5 |
+| 经典蓝 | 原版蓝底白字 h2 | #1A6DB5 |
+
+### 快速开始
+
+```bash
+# 1. 克隆
+git clone https://github.com/youyituomaoxian/laobanjiu-skills.git
+cd laobanjiu-skills
+
+# 2. 初始化项目
+python wechat-publisher/scripts/setup.py my-wechat-project
+cd my-wechat-project
+
+# 3. 配置凭证
+cp aws.env.example aws.env                       # 填入微信凭证
+# 编辑 .aws-article/config.yaml                  # 替换 {{VALUE}} 占位符
+
+# 4. 验证
+python ../wechat-publisher/scripts/publish.py check
+python ../wechat-publisher/scripts/format.py --list-themes
+
+# 5. 开始发布——对 Agent 说「发一篇公众号文章」
+```
+
+### 微信特有约束
+
+- 不支持 CSS 变量 / Flexbox / Grid / 伪元素 / 动画 / JS
+- 仅支持 inline CSS（color / background / border / padding / margin / border-radius / box-shadow）
+- 图片仅 JPG/PNG，单张超 1024KB 自动压缩
+- 发布方式：draft（入草稿箱不自动发布），需 IP 白名单
+
+### 协议
+
+MIT License。编排格式（format.py / publish.py）基于 [aws-wechat-article-*](https://github.com/aiworkskills/wechat-article-skills)（MIT）修改。
+
+---
+
 ## 仓库结构规范
 
 ```
@@ -205,6 +271,12 @@ laobanjiu-skills/
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则
 │   └── reference/      → taste-skill 参数手册
+├── wechat-publisher/   ← 公众号发布一条龙
+│   ├── SKILL.md        → Agent Skill 定义
+│   ├── CLAUDE.md       → AI 项目规则
+│   ├── scripts/        → Python 脚本（format / publish / setup 等）
+│   ├── presets/        → 排版主题 YAML
+│   └── templates/      → 项目初始化模板
 └── （更多 Skill 可扩展）
 ```
 
