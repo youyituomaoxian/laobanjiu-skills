@@ -1,0 +1,15 @@
+{
+  "name": "wechat-publisher",
+  "version": "1.0.0",
+  "author": "laobanjiu",
+  "description": "公众号发布一条龙——全流程/单环节/恢复三模式，一句话完成写稿、配图、审稿、排版、推送",
+  "license": "MIT",
+  "homepage": "https://github.com/youyituomaoxian/laobanjiu-skills",
+  "tags": ["wechat", "公众号", "publish", "formatting", "writing"],
+  "permissions": ["filesystem", "network", "shell"],
+  "entryPoint": {
+    "type": "natural",
+    "path": "SKILL.md"
+  },
+  "dependencies": []
+}

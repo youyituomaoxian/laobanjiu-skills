@@ -1,0 +1,4 @@
+# wechat-publisher — 敏感文件勿提交
+aws.env
+.aws-article/config.yaml
+drafts/

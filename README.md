@@ -9,6 +9,7 @@
 | **hot-analysis** | GitHub 热门项目深度分析引擎——抓取 Trending 或指定任意项目，按 5 块框架生成交互 HTML 长页 + 海报级卡片 PNG + 素材 |
 | **hot-compare** | GitHub 项目横向对比——2-5 个项目按 5 模块方法论对比，输出长页 HTML + 海报卡片 PNG + 素材 |
 | **ui-pipeline** | 三阶 UI 设计流水线——taste-skill 定审美 → UI UX Pro Max 出设计系统 → shadcn/ui 落组件，支持 6 种灵活模式 |
+| **wechat-publisher** | 公众号发布一条龙——写稿+配图+审稿+排版+推微信草稿箱，单 skill 全流程/单环节/恢复三模式自动路由 |
 
 > ⚠️ 每次新增 Skill 时，同步更新此总览表。
 

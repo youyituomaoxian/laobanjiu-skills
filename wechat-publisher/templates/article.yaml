@@ -1,0 +1,13 @@
+# 文章元数据模板
+# 每篇文章对应 drafts/YYYYMMDD-slug/article.yaml
+title: '{{文章标题}}'
+author: '{{公众号作者名}}'
+created: '{{YYYY-MM-DD}}'
+word_count: ~3000
+default_format_preset: teal-pro
+cover: cover.jpg
+publish_method: draft
+publish_completed: false
+media_id: null
+tags: []
+summary: '{{文章摘要（120字内）}}'

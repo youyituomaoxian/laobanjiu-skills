@@ -1,0 +1,50 @@
+# wechat-publisher 配置模板
+# 复制到项目根目录 .aws-article/config.yaml 后修改 {{VALUE}} 占位符
+tone: 专业
+embeds:
+  profiles:
+    - name: '{{公众号作者名}}'
+      alias: '{{微信号ID}}'
+  miniprograms: []
+  related_articles:
+    manual: []
+    strategy: auto
+    auto_count: 3
+drafts_root: drafts/
+image_model:
+  model: ''
+  api_key: ''
+  base_url: ''
+  default_size: 1024x1024
+  default_quality: standard
+account_type: "{{公众号领域，如 科技}}"
+wechat_accounts: 1
+wechat_1_name: 默认账号
+wechat_publish_slot: 1
+wechat_appid: '{{WECHAT_APPID}}'
+article_style: 分析性
+image_density: 按需配图
+target_reader: 22-50
+writing_model:
+  model: deepseek-chat
+  api_key: '{{WRITING_MODEL_API_KEY}}'
+  base_url: https://api.deepseek.com
+  max_tokens: 4000
+  temperature: 0.7
+default_author: '{{公众号作者名}}'
+publish_method: draft
+published_root: posts/published/
+summary_length: '120'
+heading_density: 每节必有小标题
+title_max_length: '20'
+update_frequency: 周更
+need_open_comment: 1
+target_word_count: 3000-4000
+original_attribution: 本文为原创内容
+forbidden_title_phrases:
+  - 炸裂
+  - 震惊
+  - 出大事了
+custom_cover_image_style:
+  - 科技风
+  - 图文混排
