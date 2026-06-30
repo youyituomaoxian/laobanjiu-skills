@@ -10,6 +10,7 @@
 | **hot-compare** | GitHub 项目横向对比——2-5 个项目按 5 模块方法论对比，输出长页 HTML + 海报卡片 PNG + 素材 |
 | **ui-pipeline** | 三阶 UI 设计流水线——taste-skill 定审美 → UI UX Pro Max 出设计系统 → shadcn/ui 落组件，支持 6 种灵活模式 |
 | **wechat-publisher** | 公众号发布一条龙——写稿+配图+审稿+排版+推微信草稿箱，单 skill 全流程/单环节/恢复三模式自动路由 |
+| **adversarial-review** | 对抗性代码审查——Red Team 攻击 + Blue Team 辩护 + 主 Agent 裁决 + 自动修复 + QA 验证，6 阶段闭环 |
 
 > ⚠️ 每次新增 Skill 时，同步更新此总览表。
 
@@ -250,6 +251,56 @@ MIT License。编排格式（format.py / publish.py）基于 [aws-wechat-article
 
 ---
 
+## ⚔️ adversarial-review — 对抗性代码审查
+
+一条指令，**六个阶段**：Red Team 攻击 → Blue Team 辩护 → 主 Agent 裁决 → 自动修复 → QA 验证。基于第一性原理的对抗博弈模型，用激励反转消除单一审查者的注意力盲点。
+
+### 核心原理
+
+| 角色 | 激励 | 行为 |
+|------|------|------|
+| 🔴 Red Team（攻击者） | 找到真实缺陷 | 视每行代码为"有罪"，从恶意输入/竞态/边界切入 |
+| 🔵 Blue Team（辩护者） | 用证据成功辩护 | 视每行代码为"无辜"，从逻辑/覆盖/设计切入 |
+| ⚪ Judge（主 Agent） | 交叉裁决 + 直接修复 | 读双份报告 → 独立验证 → 修确认缺陷 |
+
+### 能力矩阵
+
+| 阶段 | 执行者 | 产出 |
+|------|--------|------|
+| Phase 0: Preflight | 主 Agent | lint/build 预检结果 |
+| Phase 1: Red Attack | 子 Agent (background) | 攻击报告，每条缺陷含触发路径 + CVSS 级严重度 |
+| Phase 2: Blue Defense | 子 Agent (background) | 逐条回应：CONFIRMED / DISPUTED / NEEDS_CONTEXT |
+| Phase 3: Adjudication | 主 Agent | 交叉裁决报告，不确定项标记人工审查 |
+| Phase 4: Fix | 主 Agent | 直接 Edit 修复确认缺陷 |
+| Phase 5: Verification | 子 Agent (background) | QA 验证 + GO/NO-GO 最终裁定 |
+
+### 使用方式
+
+```
+对抗审查 src/App.jsx
+/adversarial-review src/components/Hero.jsx
+```
+
+### 与 UltraCode (CLI Dynamic Workflow) 对比
+
+| 维度 | UltraCode (CLI) | 本 Skill (GUI) |
+|------|-----------------|-----------------|
+| 编排 | 引擎自动调度 | 主 Agent 手动推进 |
+| 收敛 | 可编程循环 | 固定 2 轮对抗 |
+| 模型 | 可能支持多模型 | 单一模型（role-prompting 补偿） |
+| 门槛 | CLI + 配置文件 | 安装即用 |
+| 分发 | Workflow YAML | GitHub 即分发 |
+
+> 详细对比见 `references/design.md`。
+
+### 局限性
+
+- **单一模型盲点**：子 Agent 共享同一底层模型，深层盲点可能集体遗漏（GUI 限制）
+- **仅静态分析**：无运行时 fuzzing、无 exploit 验证
+- **非 CI/CD**：交互式深度审查场景，非自动化流水线
+
+---
+
 ## 仓库结构规范
 
 ```
@@ -273,6 +324,13 @@ laobanjiu-skills/
 │   └── reference/      → taste-skill 参数手册
 ├── wechat-publisher/   ← 公众号发布一条龙
 │   ├── SKILL.md        → Agent Skill 定义
+│   ├── CLAUDE.md       → AI 项目规则
+│   └── ...             → 其他文件
+├── adversarial-review/ ← 对抗性代码审查
+│   ├── SKILL.md        → Agent Skill 定义
+│   ├── README.md       → 详细说明
+│   ├── references/     → 攻击线索库 + 工作流详情 + 设计原理
+│   └── assets/         → 报告模板
 │   ├── CLAUDE.md       → AI 项目规则
 │   ├── scripts/        → Python 脚本（format / publish / setup 等）
 │   ├── presets/        → 排版主题 YAML
