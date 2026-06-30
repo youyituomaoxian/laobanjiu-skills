@@ -36,11 +36,6 @@ if sys.stdout.encoding and sys.stdout.encoding.upper() != "UTF-8":
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "output"
 
-# 项目分析数据（与 github_trending_weekly.py 共享，直接引用避免重复）
-sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
-from github_trending_weekly import PROJECT_ANALYSIS, match_analysis
-
-
 def find_latest_html() -> Path | None:
     """从 output/ 中找到最新带时间戳的 HTML 文件（优先 latest.html）。"""
     latest = OUTPUT_DIR / "latest.html"
@@ -48,7 +43,6 @@ def find_latest_html() -> Path | None:
         return latest
     files = sorted(OUTPUT_DIR.glob("github_hot_analysis_*.html"), reverse=True)
     return files[0] if files else None
-
 
 def parse_projects_from_html(html_path: Path) -> list[dict]:
     """从 HTML 中解析出每个项目的元数据——使用 string split 而非复杂 regex。
@@ -78,7 +72,6 @@ def parse_projects_from_html(html_path: Path) -> list[dict]:
         projects.append(proj)
 
     return projects, generated_at
-
 
 def _parse_card_chunk(chunk: str) -> dict:
     """从批量分析的单个卡片 chunk 解析项目数据。"""
@@ -129,16 +122,13 @@ def _parse_card_chunk(chunk: str) -> dict:
         "description": proj["description"],
     }
 
-
 def _parse_single_project_hero(html: str) -> dict | None:
     """从单项目分析的 hero section 解析项目数据。"""
-    # 项目名称 (h1 in hero)
     m = re.search(r'<h1[^>]*>([^<]+)</h1>', html)
     name = m.group(1).strip() if m else ""
     if not name:
         return None
 
-    # 从 footer 提取 full_name (owner/repo)
     m = re.search(r'\| ([^/]+)/([^<|]+)</p>', html)
     owner = m.group(1).strip() if m else ""
     full_name = m.group(0).strip() if m else ""
@@ -146,18 +136,15 @@ def _parse_single_project_hero(html: str) -> dict | None:
         owner = ""
     repo_name = name
 
-    # Stars (第一个 data-count)
     star_match = re.search(r'data-count="(\d+)"', html)
     stars = int(star_match.group(1)) if star_match else 0
 
-    # Forks (第二个 data-count)
     fork_match = re.search(r'data-count="(\d+)"', html[star_match.end():]) if star_match else None
     forks = int(fork_match.group(1)) if fork_match else 0
 
     def fmt_num(n: int) -> str:
         return f"{n/1000:.1f}k" if n >= 1000 else str(n)
 
-    # 描述 (subtitle in hero)
     m = re.search(r'class="subtitle"[^>]*>([^<]+)</p>', html)
     description = m.group(1).strip() if m else ""
 
@@ -174,7 +161,6 @@ def _parse_single_project_hero(html: str) -> dict | None:
         "description": description,
     }
 
-
 def create_material_dir(projects: list[dict], generated_at: str) -> Path:
     """创建素材输出目录结构，写入元数据 JSON。"""
     now = datetime.now(timezone(timedelta(hours=8)))
@@ -182,7 +168,6 @@ def create_material_dir(projects: list[dict], generated_at: str) -> Path:
     material_dir = OUTPUT_DIR / f"素材输出_{ts}"
     material_dir.mkdir(parents=True, exist_ok=True)
 
-    # 子目录
     html_dir = material_dir / "【HTML报告】"
     poster_dir = material_dir / "【海报PNG】"
     prompt_dir = material_dir / "【项目提示词】"
@@ -191,14 +176,12 @@ def create_material_dir(projects: list[dict], generated_at: str) -> Path:
     for d in [html_dir, poster_dir, prompt_dir, script_dir, cover_dir]:
         d.mkdir(exist_ok=True)
 
-    # 复制最新 HTML
     latest_html = find_latest_html()
     if latest_html:
         dest_html = html_dir / latest_html.name
         dest_html.write_text(latest_html.read_text(encoding="utf-8"), encoding="utf-8")
         print(f"[+] HTML 已复制: {dest_html}")
 
-    # 写入 projects_data.json（AI 用）
     data = {
         "generated_at": generated_at,
         "material_time": now.strftime("%Y-%m-%d %H:%M CST"),
@@ -209,7 +192,6 @@ def create_material_dir(projects: list[dict], generated_at: str) -> Path:
     json_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[+] 项目数据: {json_path}")
 
-    # 写入 00_本期概览.md（框架，内容由 AI 填充）
     overview_lines = [
         f"# 本期素材概览\n",
         f"**生成时间**: {data['material_time']}",
@@ -228,7 +210,6 @@ def create_material_dir(projects: list[dict], generated_at: str) -> Path:
     print(f"[+] 概览文件: {material_dir / '00_本期概览.md'}")
 
     return material_dir
-
 
 def main():
     print("[*] 正在读取最新分析数据...")
@@ -253,7 +234,6 @@ def main():
     print(f"[+] 请 AI 继续写入提示词和口播文案")
 
     return material_dir
-
 
 if __name__ == "__main__":
     main()

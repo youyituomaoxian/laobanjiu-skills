@@ -15,6 +15,8 @@ import sys
 import io
 import re
 import ssl
+import socket
+import time
 import urllib.request
 from pathlib import Path
 
@@ -24,13 +26,22 @@ if sys.stdout.encoding and sys.stdout.encoding.upper() != "UTF-8":
 OSS_INSIGHT_API = "https://ossinsight.io/api/mcp"
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output"
 
-
-def fetch_json(url: str, timeout: int = 15):
+def fetch_json(url: str, timeout: int = 15, retries: int = 3):
+    """带重试的 JSON API 请求。"""
     ctx = ssl.create_default_context()
-    req = urllib.request.Request(url, headers={"User-Agent": "GitHubAnalyzer/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
-        return json.loads(resp.read().decode())
-
+    last_err = None
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "GitHubAnalyzer/1.0"})
+            with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+                return json.loads(resp.read().decode())
+        except (urllib.error.URLError, socket.timeout, OSError) as e:
+            last_err = e
+            if attempt < retries - 1:
+                wait = 2 ** attempt
+                print(f"    ⚠ 请求失败 (第{attempt+1}次), {wait}s 后重试...")
+                time.sleep(wait)
+    raise last_err
 
 def parse_input(text: str) -> tuple[str, str] | None:
     """从用户输入中提取 owner/repo。
@@ -46,10 +57,8 @@ def parse_input(text: str) -> tuple[str, str] | None:
         return m.group(1), m.group(2)
     return None
 
-
 def fmt_stars(n: int) -> str:
     return f"{n/1000:.1f}k" if n >= 1000 else str(n)
-
 
 def main():
     if len(sys.argv) < 2:
@@ -71,7 +80,8 @@ def main():
     url = f"{OSS_INSIGHT_API}?action=repo&owner={owner}&repo={repo}"
     data = fetch_json(url)
     if not data.get("ok") or not data.get("data"):
-        print(f"[!] 获取失败: 未找到项目 {owner}/{repo}")
+        err_msg = data.get("message", "Unknown error") if isinstance(data, dict) else "Invalid API response"
+        print(f"[!] 获取失败: {err_msg} ({owner}/{repo})")
         sys.exit(1)
 
     detail = data["data"]
@@ -103,7 +113,6 @@ def main():
     print(f"   描述:  {result['description'][:80]}{'...' if len(result['description']) > 80 else ''}")
     print(f"[+] 数据已保存: {out_file}")
     return out_file
-
 
 if __name__ == "__main__":
     main()
