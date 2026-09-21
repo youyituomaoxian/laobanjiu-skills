@@ -6,7 +6,11 @@
 <title>{{行业名称}}行业分析报告 · {{报告年份}}</title>
 <!--
   ═══════════════════════════════════════════════════════════════════
-  LBJ-行业分析 · 报告外壳骨架（预设 A · hot-analysis 深藏蓝紫）
+  LBJ-行业分析 · 报告外壳骨架（默认预设 · 弘讯暗色）
+
+  视觉令牌取自弘讯 B 端设计系统 tokens.json 的 dark 节
+  （generatePalette('#005EAE',{mode:'dark'}) 引擎输出，唯一真源）。
+  备选预设见 references/报告风格与组件规范.md：preset B hot-analysis 深藏蓝紫 / preset C shadcn Zinc。
 
   使用方式：
   1. 复制本文件到 output/{行业名}/{行业名}_analysis_{年份}.html
@@ -15,73 +19,103 @@
   4. 不需要的图表整段删掉（canvas 与其 new Chart 调用要成对删）
   5. 跑 scripts/validate-report.mjs <报告路径> 确认结构一致
 
+  约定：
+  · 报告头部只放六项元信息，**不设「修订记录」模块**；订正留痕写在交付说明里，不进报告正文。
+  · 顶部导航栏（tab）整体居中对齐。
+  · Hero 区带 banner 底色（品牌深表面 → 页面底渐变 + 点阵纹理），与导航栏同色系；装饰层为 `.banner-deco`。
+  · 动效两件套（滚动显影 / 字符级显影）由文件末尾的原生 JS 驱动，
+    统一挂在 html.js-anim 下 —— 无 JS 或系统「减弱动效」时自动全部失效，内容照常可见。
+
   配色纪律：不得新增令牌外的 hex。图表颜色只能取自下方 JS 常量。
   ═══════════════════════════════════════════════════════════════════
 -->
 <style>
 :root{
-  --bg:#0b0f19;
-  --surface:#131a2b;
-  --surface2:#1a2339;
-  --border:#1e2d4a;
-  --border-soft:#16203a;
-  --text:#e2e8f0;
-  --text2:#94a3b8;
-  --text3:#64748b;
-  --accent:#a78bfa;
-  --accent2:#38bdf8;
-  --green:#34d399; --red:#f87171; --orange:#fb923c; --yellow:#fbbf24;
+  /* ── 表面层级（页面 < 卡片 < 浮层） ───────────────────────────── */
+  --bg:#121826;            /* background.page */
+  --surface:#1E293B;       /* background.surface */
+  --surface2:#243044;      /* background.elevated · 表头 / tooltip */
+  --sunken:#0F172A;        /* elevation.sunken */
+  --brand-surface:#0A2540; /* 品牌深表面 · 结构骨架专用 */
+  --border:#334155;
+  --border-soft:rgba(51,65,85,.6);
+  --text:#F1F5F9;
+  --text2:#CBD5E1;
+  --text3:#94A3B8;
+  /* ── 主色 ──────────────────────────────────────────────────────── */
+  --accent:#3B82F6;
+  --accent-hover:#60A5FA;
+  --accent-active:#2563EB;
+  --accent2:#38BDF8;
+  --link:#60A5FA;
+  /* ── 功能色（dark.functional，Web 端值） ───────────────────────── */
+  --green:#52C41A; --red:#FF4D4F; --orange:#FFA940; --yellow:#FFA940; --running:#22C55E;
+  --suc-soft:#162312; --warn-soft:#2E2410; --err-soft:#2A1414; --run-soft:#0E2018;
+  /* ── 投影 / 圆角 ──────────────────────────────────────────────── */
+  --shadow-card:0 1px 2px rgba(0,0,0,.40), 0 0 0 1px rgba(255,255,255,.04);
+  --r-base:4px; --r-md:8px; --r-lg:16px;
   /* 中国金融市场惯例：红涨绿跌 */
   --up:var(--red); --down:var(--green);
   /* 语义别名，便于沿用旧类名 */
   --background:var(--bg); --card:var(--surface); --card-2:var(--surface2);
   --foreground:var(--text); --muted:var(--text2); --muted-2:var(--text3);
-  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
-  --font-mono:'JetBrains Mono','Cascadia Code','Fira Code',Consolas,monospace;
+  --font-sans:'Roboto','Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,'Liberation Mono',Menlo,monospace;
 }
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
   margin:0;background:var(--bg);color:var(--text);
-  font-family:var(--font-sans);font-size:15px;line-height:1.7;
+  font-family:var(--font-sans);font-size:14px;line-height:1.6;
   -webkit-font-smoothing:antialiased;
 }
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:6px;border:2px solid var(--bg)}
-::-webkit-scrollbar-thumb:hover{background:#243352}
-a{color:var(--accent2);text-decoration:none}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#475569}
+a{color:var(--link);text-decoration:none}
 .num,.mono{font-family:var(--font-mono);font-feature-settings:"tnum"}
 
-/* ── 元素1 · Hero ─────────────────────────────────────────────── */
+/* ── 元素1 · Hero（banner 底） ────────────────────────────────── */
 header{
   position:relative;min-height:50vh;display:flex;flex-direction:column;
   align-items:center;justify-content:center;text-align:center;
-  padding:80px 24px 64px;border-bottom:1px solid var(--border);overflow:hidden;
+  padding:80px 24px 64px;overflow:hidden;
+  /* banner 背景：品牌深表面 → 页面底 的纵向过渡，与导航栏同色系 */
+  background:linear-gradient(180deg,#0A2540 0%,rgba(10,37,64,.62) 42%,rgba(18,24,38,.90) 78%,var(--bg) 100%);
+  border-bottom:1px solid rgba(96,165,250,.22);
+}
+/* banner 点阵纹理层（辅调青，极低透明；向下渐隐，不干扰标题） */
+.banner-deco{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(96,165,250,.16) 1px,transparent 1px);
+  background-size:26px 26px;
+  -webkit-mask-image:radial-gradient(118% 96% at 50% 0%,#000 0%,transparent 74%);
+  mask-image:radial-gradient(118% 96% at 50% 0%,#000 0%,transparent 74%);
 }
 header::before,header::after{
   content:"";position:absolute;border-radius:50%;pointer-events:none;
 }
 header::before{
   width:900px;height:900px;top:-420px;left:-260px;
-  background:radial-gradient(circle,rgba(167,139,250,.10) 0%,transparent 65%);
+  background:radial-gradient(circle,rgba(59,130,246,.12) 0%,transparent 65%);
   animation:drift 10s ease-in-out infinite alternate;
 }
 header::after{
   width:760px;height:760px;bottom:-400px;right:-220px;
-  background:radial-gradient(circle,rgba(56,189,248,.06) 0%,transparent 65%);
+  background:radial-gradient(circle,rgba(56,189,248,.07) 0%,transparent 65%);
   animation:drift 10s ease-in-out infinite alternate-reverse;
 }
 @keyframes drift{from{transform:translate3d(0,0,0)}to{transform:translate3d(3%,-3%,0)}}
 .kicker{
-  position:relative;font-size:13px;letter-spacing:.25em;text-transform:uppercase;
-  color:var(--accent);font-weight:600;margin:0 0 18px;
+  position:relative;font-size:11px;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--accent-hover);font-weight:600;margin:0 0 18px;
 }
 /* ── 元素2 · 渐变标题 ─────────────────────────────────────────── */
 h1{
   position:relative;margin:0 0 20px;font-size:clamp(30px,5vw,46px);font-weight:800;
   line-height:1.25;letter-spacing:-.02em;
-  background:linear-gradient(135deg,#e2e8f0,#a78bfa,#38bdf8);
+  background:linear-gradient(135deg,#F1F5F9,#60A5FA,#38BDF8);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
 .sub{
@@ -95,23 +129,29 @@ h1{
 .chip{
   font-family:var(--font-mono);font-size:12px;color:var(--text3);
   background:var(--surface);border:1px solid var(--border);
-  padding:5px 11px;border-radius:6px;white-space:nowrap;
+  padding:5px 11px;border-radius:var(--r-base);white-space:nowrap;
 }
 .chip b{color:var(--text2);font-weight:600}
 
-/* ── 元素4 · 锚点导航 ────────────────────────────────────────── */
+/* ── 元素4/10 · 锚点导航 = 结构骨架（品牌深表面） ─────────────── */
 nav{
   position:sticky;top:0;z-index:50;
-  background:rgba(11,15,25,.85);
+  background:rgba(10,37,64,.88);
   -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-  padding:10px 16px;overflow-x:auto;white-space:nowrap;
+  border-bottom:1px solid rgba(96,165,250,.22);
+  padding:10px 16px;display:flex;justify-content:center;
+  overflow-x:auto;white-space:nowrap;
 }
 nav::-webkit-scrollbar{height:0}
 nav a{
-  display:inline-block;padding:8px 16px;margin-right:4px;border-radius:6px;
+  flex:none;display:inline-block;padding:8px 16px;border-radius:var(--r-base);
   font-size:13px;font-weight:600;color:var(--text2);transition:.18s;
 }
+nav a + a{margin-left:4px}
+/* 居中 + 可滚动并存：用 auto 外边距而非纯 justify-content，
+   否则窄屏内容溢出时左侧会被裁掉且滚不回去 */
+nav a:first-child{margin-left:auto}
+nav a:last-child{margin-right:auto}
 nav a:hover{background:var(--surface2);color:var(--text)}
 
 /* ── 容器 ─────────────────────────────────────────────────────── */
@@ -121,50 +161,50 @@ section:last-of-type{border-bottom:none}
 /* ── 元素3 · 编号徽章 ────────────────────────────────────────── */
 section h2{
   display:flex;align-items:center;gap:14px;
-  margin:0 0 14px;font-size:26px;font-weight:700;letter-spacing:-.01em;line-height:1.3;
+  margin:0 0 14px;font-size:24px;line-height:32px;font-weight:700;letter-spacing:-.01em;
 }
 .idx{
   flex:none;width:36px;height:36px;line-height:36px;text-align:center;
-  border-radius:8px;background:rgba(167,139,250,.12);color:var(--accent);
+  border-radius:var(--r-md);background:rgba(59,130,246,.14);color:var(--accent-hover);
   font-family:var(--font-mono);font-size:15px;font-weight:700;
 }
 .lead{margin:0 0 26px;font-size:14px;color:var(--text2);line-height:1.8}
 h3{
   display:flex;align-items:center;gap:9px;
-  margin:32px 0 12px;font-size:15px;font-weight:600;color:var(--accent2);
+  margin:32px 0 12px;font-size:16px;line-height:24px;font-weight:600;color:var(--accent2);
 }
 h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--accent);flex:none}
 p{margin:0 0 14px;color:var(--text2)}
 strong{color:var(--text);font-weight:600}
 
 /* ── 卡片与指标 ───────────────────────────────────────────────── */
-.grid{display:grid;gap:14px;margin:18px 0}
+.grid{display:grid;gap:16px;margin:18px 0}
 .g2{grid-template-columns:repeat(2,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g4{grid-template-columns:repeat(4,1fr)}
 .card{
-  background:var(--surface);border:1px solid var(--border);border-radius:12px;
-  padding:18px 20px;transition:border-color .2s;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:18px 20px;transition:border-color .2s, box-shadow .2s;
 }
-.card:hover{border-color:var(--text3)}
-.card h4{margin:0 0 8px;font-size:14px;font-weight:600;color:var(--text)}
+.card:hover{border-color:var(--text3);box-shadow:var(--shadow-card)}
+.card h4{margin:0 0 8px;font-size:16px;line-height:24px;font-weight:600;color:var(--text)}
 .card p:last-child{margin-bottom:0}
 .kpi .lbl{font-size:12px;color:var(--text3);letter-spacing:.03em;margin:0 0 8px}
 .kpi .val{
   font-family:var(--font-mono);font-feature-settings:"tnum";
-  font-size:26px;font-weight:600;color:var(--text);line-height:1.15;margin:0 0 6px;
+  font-size:24px;font-weight:600;color:var(--text);line-height:1.15;margin:0 0 6px;
 }
 .kpi .delta{font-family:var(--font-mono);font-size:13px;margin:0 0 4px}
 .kpi .note{font-size:12px;color:var(--text3);margin:0;line-height:1.6}
 
 /* ── 元素6 · 摘要盒 ──────────────────────────────────────────── */
 .summary-box{
-  border-radius:12px;padding:20px 24px;margin:22px 0;
-  background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(56,189,248,.06));
-  border:1px solid rgba(167,139,250,.2);
+  border-radius:var(--r-md);padding:20px 24px;margin:22px 0;
+  background:linear-gradient(135deg,rgba(59,130,246,.10),rgba(56,189,248,.06));
+  border:1px solid rgba(59,130,246,.24);
 }
 .summary-box .ttl{
-  font-size:13px;font-weight:600;color:var(--accent);
+  font-size:13px;font-weight:600;color:var(--accent-hover);
   letter-spacing:.05em;margin:0 0 12px;text-transform:uppercase;
 }
 .summary-box ul{margin:0;padding:0;list-style:none}
@@ -175,7 +215,7 @@ strong{color:var(--text);font-weight:600}
 
 /* ── 元素5 · 提示框（圆角 8px，无左侧色条） ───────────────────── */
 .callout{
-  border-radius:8px;padding:14px 18px;margin:18px 0;font-size:13.5px;
+  border-radius:var(--r-md);padding:14px 18px;margin:18px 0;font-size:13.5px;
   line-height:1.75;border:1px solid;color:var(--text2);
 }
 .callout b{color:var(--text)}
@@ -183,17 +223,17 @@ strong{color:var(--text);font-weight:600}
   display:block;font-weight:600;font-size:12px;letter-spacing:.05em;
   text-transform:uppercase;margin-bottom:6px;
 }
-.tip{background:rgba(56,189,248,.06);border-color:rgba(56,189,248,.15)}
+.tip{background:rgba(56,189,248,.10);border-color:rgba(56,189,248,.30)}
 .tip .ct{color:var(--accent2)}
-.warn{background:rgba(251,146,60,.06);border-color:rgba(251,146,60,.15)}
+.warn{background:var(--warn-soft);border-color:rgba(255,169,64,.32)}
 .warn .ct{color:var(--orange)}
-.crit{background:rgba(248,113,113,.06);border-color:rgba(248,113,113,.15)}
+.crit{background:var(--err-soft);border-color:rgba(255,77,79,.32)}
 .crit .ct{color:var(--red)}
-.ok{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.15)}
+.ok{background:var(--suc-soft);border-color:rgba(82,196,26,.32)}
 .ok .ct{color:var(--green)}
 
 /* ── 元素7 · 表格 ────────────────────────────────────────────── */
-.tw{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:12px}
+.tw{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:var(--r-md)}
 table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
 thead th{
   background:var(--surface2);color:var(--text3);
@@ -202,13 +242,13 @@ thead th{
 }
 tbody td{padding:11px 14px;border-bottom:1px solid var(--border-soft);color:var(--text2);vertical-align:top}
 tbody tr:last-child td{border-bottom:none}
-tbody tr:hover{background:rgba(167,139,250,.03)}
+tbody tr:hover{background:rgba(59,130,246,.05)}
 tbody td.num,thead th.num{font-family:var(--font-mono);font-feature-settings:"tnum";text-align:right}
 tbody td b{color:var(--text)}
 
 /* ── 图表容器 ─────────────────────────────────────────────────── */
 .chart-box{
-  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
   padding:18px 20px 20px;margin:20px 0;
 }
 .chart-box .ttl{font-size:14px;font-weight:600;color:var(--text);margin:0 0 4px}
@@ -220,14 +260,14 @@ tbody td b{color:var(--text)}
 .chain{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:18px 0}
 .node{
   flex:1 1 150px;background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:14px;text-align:center;
+  border-radius:var(--r-md);padding:14px;text-align:center;
 }
 .node .n-t{font-size:12px;color:var(--text3);margin:0 0 6px}
 .node .n-v{font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--text);margin:0 0 4px}
 .node .n-d{font-size:11.5px;color:var(--text3);margin:0;line-height:1.55}
-.node.hot{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.05)}
+.node.hot{border-color:rgba(255,77,79,.35);background:rgba(255,77,79,.06)}
 .node.hot .n-v{color:var(--red)}
-.node.cold{border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.04)}
+.node.cold{border-color:rgba(82,196,26,.32);background:rgba(82,196,26,.05)}
 .node.cold .n-v{color:var(--green)}
 
 /* ── 时间线 ───────────────────────────────────────────────────── */
@@ -240,33 +280,33 @@ tbody td b{color:var(--text)}
 }
 .tl-i.pos::before{background:var(--green)}
 .tl-i.neg::before{background:var(--red)}
-.tl-d{font-family:var(--font-mono);font-size:11.5px;color:var(--accent);margin:0 0 4px}
+.tl-d{font-family:var(--font-mono);font-size:11.5px;color:var(--accent-hover);margin:0 0 4px}
 .tl-c{font-size:13.5px;color:var(--text2);margin:0;line-height:1.7}
 .tl-c b{color:var(--text)}
 
 /* ── 可信度徽章 ───────────────────────────────────────────────── */
 .b{
   display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:600;
-  padding:2px 7px;border-radius:5px;white-space:nowrap;line-height:1.5;
+  padding:2px 7px;border-radius:var(--r-base);white-space:nowrap;line-height:1.5;
 }
-.b-3{background:rgba(52,211,153,.12);color:var(--green)}
-.b-2{background:rgba(251,191,36,.12);color:var(--yellow)}
-.b-1{background:rgba(248,113,113,.12);color:var(--red)}
-.b-n{background:rgba(100,116,139,.14);color:var(--text3)}
+.b-3{background:rgba(82,196,26,.14);color:var(--green)}
+.b-2{background:rgba(255,169,64,.14);color:var(--orange)}
+.b-1{background:rgba(255,77,79,.14);color:var(--red)}
+.b-n{background:rgba(148,163,184,.14);color:var(--text3)}
 
 /* ── 风险清单 ─────────────────────────────────────────────────── */
 .risk{
   display:flex;gap:14px;align-items:flex-start;
   background:var(--surface);border:1px solid var(--border);
-  border-radius:10px;padding:15px 18px;margin:12px 0;
+  border-radius:var(--r-md);padding:15px 18px;margin:12px 0;
 }
 .risk .lv{
   flex:none;font-family:var(--font-mono);font-size:11px;font-weight:600;
-  padding:3px 9px;border-radius:5px;margin-top:2px;
+  padding:3px 9px;border-radius:var(--r-base);margin-top:2px;
 }
-.lv-h{background:rgba(248,113,113,.12);color:var(--red)}
-.lv-m{background:rgba(251,146,60,.12);color:var(--orange)}
-.lv-l{background:rgba(100,116,139,.14);color:var(--text3)}
+.lv-h{background:rgba(255,77,79,.14);color:var(--red)}
+.lv-m{background:rgba(255,169,64,.14);color:var(--orange)}
+.lv-l{background:rgba(148,163,184,.14);color:var(--text3)}
 .risk .r-c{flex:1}
 .risk .r-t{font-size:14px;font-weight:600;color:var(--text);margin:0 0 5px}
 .risk .r-d{font-size:13px;color:var(--text2);margin:0;line-height:1.7}
@@ -279,18 +319,37 @@ tbody td b{color:var(--text)}
 /* ── 元素8 · 回到顶部 ────────────────────────────────────────── */
 .btt{
   position:fixed;right:24px;bottom:24px;z-index:60;width:44px;height:44px;
-  display:flex;align-items:center;justify-content:center;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);
   background:var(--surface);border:1px solid var(--border);
   color:var(--text2);font-size:17px;transition:.2s;
 }
-.btt:hover{border-color:var(--accent);color:var(--accent)}
+.btt:hover{border-color:var(--accent);color:var(--accent-hover);box-shadow:var(--shadow-card)}
 
 /* ── 页脚 ─────────────────────────────────────────────────────── */
 footer{
-  border-top:1px solid var(--border);padding:32px 24px 48px;text-align:center;
+  border-top:1px solid rgba(96,165,250,.22);padding:32px 24px 48px;text-align:center;
   font-size:12px;color:var(--text3);line-height:1.9;
 }
 footer b{color:var(--text2)}
+
+/* ── 动效层：滚动显影 / 字符级显影（原生零依赖） ────────────────
+   参考稿用 Framer Motion（React）实现，这里翻译成 IntersectionObserver
+   + rAF 节流的 scroll 监听 + CSS transform，仍是单个静态 HTML。
+
+   ★ 统一开关：html.js-anim
+     该 class 只在「浏览器支持 IO」且「未开启系统减弱动效」时由 JS 加上。
+     因此：无 JS → 不加 → 所有内容默认可见；减弱动效 → 不加 → 同上。
+     任何新增动效都必须挂在 html.js-anim 下，不得写裸的 opacity:0。 */
+html.js-anim .reveal{
+  opacity:0;transform:translateY(24px);
+  transition:opacity .7s cubic-bezier(.25,.1,.25,1),transform .7s cubic-bezier(.25,.1,.25,1);
+  transition-delay:var(--d,0ms);
+}
+html.js-anim .reveal.in{opacity:1;transform:none}
+
+/* ② 字符级显影：拉丁 / 数字串整体不可断行（.aw），逐字显影（.ach） */
+.aw{white-space:nowrap}
+.ach{opacity:.2}
 
 /* ── 动效降级（强制） ────────────────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
@@ -299,27 +358,32 @@ footer b{color:var(--text2)}
 }
 @media (max-width:900px){
   .g3,.g4{grid-template-columns:repeat(2,1fr)}
-  section h2{font-size:22px}
+  section h2{font-size:20px;line-height:28px}
 }
 @media (max-width:640px){
   .g2,.g3,.g4{grid-template-columns:1fr}
   nav a{font-size:12px;padding:7px 12px}
   .idx{width:30px;height:30px;line-height:30px;font-size:13px}
-  section h2{font-size:19px;gap:10px}
+  section h2{font-size:18px;line-height:26px;gap:10px}
   .chart-hold{height:250px}
 }
 /* ── 打印 ─────────────────────────────────────────────────────── */
 @media print{
-  .btt,nav{display:none!important}
+  .btt,nav,.banner-deco{display:none!important}
   body{background:#fff;color:#111}
   header::before,header::after{display:none}
   section{page-break-inside:avoid}
+  /* 动效层全部还原：打印/导出 PDF 时不依赖用户是否滚动过。
+     注意内联 style 会被带 !important 的样式表声明覆盖，所以这两条能压住 JS 写入的值 */
+  html.js-anim .reveal{opacity:1!important;transform:none!important}
+  .ach{opacity:1!important}
 }
 </style>
 </head>
 <body>
 
 <header>
+  <div class="banner-deco" aria-hidden="true"></div>
   <p class="kicker">Industry Research · LBJ</p>
   <h1>{{行业名称}}行业分析报告</h1>
   <p class="sub">{{一句话点出本行业当前所处阶段与核心矛盾，30–60 字}}</p>
@@ -330,11 +394,6 @@ footer b{color:var(--text2)}
     <span class="chip"><b>报告生成</b> {{报告生成日}}</span>
     <span class="chip"><b>币种</b> {{主币种}} @ {{汇率时点}}</span>
     <span class="chip"><b>来源数</b> {{来源数}}</span>
-  </div>
-  <!-- 做过订正时保留，否则删除 -->
-  <div class="callout tip">
-    <span class="ct">修订记录</span>
-    {{日期}} 初版发布。｜ {{日期}} 订正 {{章节}}：{原值} → {新值}，原因 {一句话}。
   </div>
 </header>
 
@@ -747,21 +806,23 @@ footer b{color:var(--text2)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-/* ═══ 全局默认 ══════════════════════════════════════════════════ */
-Chart.defaults.color = '#94a3b8';
-Chart.defaults.font.family = "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif";
+/* ═══ 全局默认（弘讯暗色令牌） ══════════════════════════════════ */
+Chart.defaults.color = '#94A3B8';                 /* textTertiary */
+Chart.defaults.font.family = "'Roboto','Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
 Chart.defaults.font.size = 12;
-Chart.defaults.borderColor = '#16203a';
+Chart.defaults.borderColor = '#3E4C63';           /* chartGrid */
 
 /* 颜色常量：只能取这些，不得新增 hex */
-const UP='#f87171', DOWN='#34d399', BLUE='#38bdf8', CYAN='#a78bfa', PURPLE='#a78bfa',
-      ORANGE='#fb923c', YELLOW='#fbbf24', MUTE='#64748b';
-const GRID = {color:'#16203a', drawBorder:false};
-const TT = {backgroundColor:'#131a2b', borderColor:'#1e2d4a', borderWidth:1,
-            titleColor:'#e2e8f0', bodyColor:'#94a3b8', padding:10, cornerRadius:8,
+const UP='#FF4D4F', DOWN='#52C41A',               /* 弘讯 error / success · 红涨绿跌 */
+      BLUE='#38BDF8', CYAN='#00C7BE', PURPLE='#8A5CF5',
+      ORANGE='#FF9500', YELLOW='#FFA940', MUTE='#94A3B8';
+const GRID = {color:'#3E4C63', drawBorder:false};
+const TT = {backgroundColor:'#243044', borderColor:'#334155', borderWidth:1,
+            titleColor:'#F1F5F9', bodyColor:'#CBD5E1', padding:10, cornerRadius:8,
             displayColors:true, boxPadding:4};
-const LEG = {labels:{usePointStyle:true, pointStyle:'circle', boxWidth:7, padding:14, color:'#94a3b8'}};
+const LEG = {labels:{usePointStyle:true, pointStyle:'circle', boxWidth:7, padding:14, color:'#CBD5E1'}};
 const PCT = v => v==null ? '' : v + '%';
+const AXIS = {color:'#94A3B8', font:{size:11}};   /* 轴标题字色 = textTertiary */
 
 /* ── 01 规模趋势（柱+折线双轴） ───────────────────────────────── */
 new Chart(document.getElementById('c-market'), {
@@ -769,7 +830,7 @@ new Chart(document.getElementById('c-market'), {
     labels:['2021','2022','2023','2024','2025'],           /* ✎ 替换 */
     datasets:[
       {type:'bar', label:'市场规模', data:[0,0,0,0,0],      /* ✎ 替换 */
-       backgroundColor:'rgba(167,139,250,.55)', borderRadius:5, yAxisID:'y', order:2},
+       backgroundColor:'rgba(59,130,246,.55)', borderRadius:4, yAxisID:'y', order:2},
       {type:'line', label:'同比增速', data:[0,0,0,0,0],      /* ✎ 替换 */
        borderColor:ORANGE, backgroundColor:ORANGE, borderWidth:2,
        pointRadius:3, tension:.32, yAxisID:'y1', order:1}
@@ -781,10 +842,10 @@ new Chart(document.getElementById('c-market'), {
     plugins:{legend:LEG, tooltip:TT},
     scales:{
       y:{beginAtZero:true, grid:GRID, border:{display:false},
-         title:{display:true, text:'{{单位}}', color:'#64748b', font:{size:11}}},
+         title:{display:true, text:'{{单位}}', ...AXIS}},
       y1:{position:'right', beginAtZero:true, grid:{display:false}, border:{display:false},
           ticks:{callback:PCT},
-          title:{display:true, text:'同比 %', color:'#64748b', font:{size:11}}},
+          title:{display:true, text:'同比 %', ...AXIS}},
       x:{grid:{display:false}, border:{display:false}}
     }
   }
@@ -796,7 +857,7 @@ new Chart(document.getElementById('c-share'), {
   data:{
     labels:['玩家A','玩家B','玩家C','玩家D','玩家E','其他'],   /* ✎ 替换 */
     datasets:[{label:'份额', data:[0,0,0,0,0,0],             /* ✎ 替换 */
-      backgroundColor:['#f87171','#fb923c','#fbbf24','#38bdf8','#a78bfa','#334155'],
+      backgroundColor:['#FF4D4F','#FF9500','#FFA940','#38BDF8','#8A5CF5','#334155'],
       borderRadius:4}]
   },
   options:{
@@ -804,7 +865,7 @@ new Chart(document.getElementById('c-share'), {
     plugins:{legend:{display:false}, tooltip:{...TT, callbacks:{label:c=>' 份额 '+c.parsed.x+'%'}}},
     scales:{
       x:{beginAtZero:true, grid:GRID, border:{display:false}, ticks:{callback:PCT},
-         title:{display:true, text:'份额 %', color:'#64748b', font:{size:11}}},
+         title:{display:true, text:'份额 %', ...AXIS}},
       y:{grid:{display:false}, border:{display:false}}
     }
   }
@@ -816,7 +877,7 @@ new Chart(document.getElementById('c-cr'), {
   data:{
     labels:['2021','2022','2023','2024','2025'],                 /* ✎ 替换 */
     datasets:[
-      {label:'CR4', data:[0,0,0,0,0], borderColor:CYAN, backgroundColor:'rgba(167,139,250,.10)',
+      {label:'CR4', data:[0,0,0,0,0], borderColor:CYAN, backgroundColor:'rgba(0,199,190,.12)',
        fill:true, tension:.32, borderWidth:2, pointRadius:3, spanGaps:false},
       {label:'CR8', data:[0,0,0,0,0], borderColor:BLUE, backgroundColor:BLUE,
        tension:.32, borderWidth:2, pointRadius:3, spanGaps:false}
@@ -828,7 +889,7 @@ new Chart(document.getElementById('c-cr'), {
     plugins:{legend:LEG, tooltip:{...TT, callbacks:{label:c=>' '+c.dataset.label+' '+(c.parsed.y==null?'—':c.parsed.y+'%')}}},
     scales:{
       y:{beginAtZero:true, grid:GRID, border:{display:false}, ticks:{callback:PCT},
-         title:{display:true, text:'集中度 %', color:'#64748b', font:{size:11}}},
+         title:{display:true, text:'集中度 %', ...AXIS}},
       x:{grid:{display:false}, border:{display:false}}
     }
   }
@@ -840,16 +901,16 @@ new Chart(document.getElementById('c-five'), {
   data:{
     labels:['现有竞争者','新进入者威胁','替代品威胁','供应商议价','购买者议价'],  /* ✎ 可按需改文案 */
     datasets:[{label:'压力强度', data:[3,3,3,3,3],                /* ✎ 替换，1–5 */
-      borderColor:CYAN, backgroundColor:'rgba(167,139,250,.18)',
-      borderWidth:2, pointBackgroundColor:CYAN, pointRadius:4}]
+      borderColor:BLUE, backgroundColor:'rgba(56,189,248,.20)',
+      borderWidth:2, pointBackgroundColor:BLUE, pointRadius:4}]
   },
   options:{
     responsive:true, maintainAspectRatio:false,
     plugins:{legend:{display:false}, tooltip:TT},
     scales:{r:{
-      min:0, max:5, ticks:{stepSize:1, backdropColor:'transparent', color:'#64748b'},
-      grid:{color:'#16203a'}, angleLines:{color:'#16203a'},
-      pointLabels:{color:'#94a3b8', font:{size:12}}
+      min:0, max:5, ticks:{stepSize:1, backdropColor:'transparent', color:'#94A3B8'},
+      grid:{color:'#3E4C63'}, angleLines:{color:'#3E4C63'},
+      pointLabels:{color:'#CBD5E1', font:{size:12}}
     }}
   }
 });
@@ -861,7 +922,7 @@ new Chart(document.getElementById('c-price'), {
     labels:['2022','2023','2024','2025','2026E'],                /* ✎ 替换 */
     datasets:[
       {label:'实际', data:[0,0,0,null,null],                     /* ✎ 替换 */
-       borderColor:CYAN, backgroundColor:'rgba(167,139,250,.10)', fill:true,
+       borderColor:CYAN, backgroundColor:'rgba(0,199,190,.12)', fill:true,
        tension:.32, borderWidth:2, pointRadius:3, spanGaps:false},
       {label:'预测', data:[null,null,0,0,0],                     /* ✎ 替换 */
        borderColor:MUTE, borderDash:[5,4], backgroundColor:MUTE,
@@ -874,7 +935,7 @@ new Chart(document.getElementById('c-price'), {
     plugins:{legend:LEG, tooltip:TT},
     scales:{
       y:{grid:GRID, border:{display:false},
-         title:{display:true, text:'{{单位}}', color:'#64748b', font:{size:11}}},
+         title:{display:true, text:'{{单位}}', ...AXIS}},
       x:{grid:{display:false}, border:{display:false}}
     }
   }
@@ -902,7 +963,7 @@ new Chart(document.getElementById('c-scenario'), {
     plugins:{legend:LEG, tooltip:TT},
     scales:{
       y:{beginAtZero:true, grid:GRID, border:{display:false},
-         title:{display:true, text:'{{单位}}', color:'#64748b', font:{size:11}}},
+         title:{display:true, text:'{{单位}}', ...AXIS}},
       x:{grid:{display:false}, border:{display:false}}
     }
   }
@@ -912,6 +973,118 @@ new Chart(document.getElementById('c-scenario'), {
 document.querySelector('.btt').addEventListener('click', e=>{
   e.preventDefault(); window.scrollTo({top:0, behavior:'smooth'});
 });
+
+/* ═══ 动效层（原生零依赖，替代参考稿的 Framer Motion） ═════════
+   ① FadeIn        —— IntersectionObserver 进视口淡入上浮，网格/链条/时间线子项 stagger
+   ② AnimatedText  —— 执行摘要「核心结论」逐字显影（0.2 → 1），进度由元素在视口中的位置驱动
+
+   统一开关 html.js-anim：仅在支持 IntersectionObserver 且未开启系统「减弱动效」时加上。
+   没加上 → 上述 CSS 全部不生效 → 内容以默认可见状态呈现（无 JS 也能正常阅读与打印）。 */
+(() => {
+  const root = document.documentElement;
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mq.matches || !('IntersectionObserver' in window)) return;
+  root.classList.add('js-anim');
+
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const raf = (fn) => {                     /* rAF 节流：一帧最多算一次 */
+    let queued = false;
+    return () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; fn(); }); };
+  };
+
+  /* ── ① FadeIn ─────────────────────────────────────────────── */
+  {
+    const singles = 'section > h2, section > .lead, section > h3, section > .tw, ' +
+                    'section > .chart-box, section > .callout, section > .risk, .summary-box > .ttl';
+    const staggers = [['.grid > *', 70], ['.chain > .node', 70], ['.tl > .tl-i', 60]];
+    const batch = [];
+    document.querySelectorAll(singles).forEach(el => batch.push([el, 0]));
+    staggers.forEach(([sel, step]) =>
+      document.querySelectorAll(sel).forEach((el, i) => batch.push([el, i * step])));
+
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('in');
+        obs.unobserve(en.target);
+      });
+    }, { rootMargin: '0px 0px -48px 0px', threshold: 0 });
+
+    batch.forEach(([el, delay]) => {
+      el.classList.add('reveal');
+      if (delay) el.style.setProperty('--d', delay + 'ms');
+      io.observe(el);
+    });
+  }
+
+  /* ── ② AnimatedText ───────────────────────────────────────── */
+  const chars = [];
+  (() => {
+    const box = document.querySelector('.summary-box');
+    if (!box) return;
+    const RUN = /[A-Za-z0-9._%+\-/,:<>=~\u2212]/;     /* 拉丁/数字/符号串：整体不可断行 */
+    const mkChar = (c) => {
+      const s = document.createElement('span');
+      s.className = 'ach';
+      s.textContent = c;
+      return s;
+    };
+    const fragOf = (str) => {                          /* 把一段文本切成 逐字 span（拉丁串外包 .aw） */
+      const frag = document.createDocumentFragment();
+      let i = 0;
+      while (i < str.length) {
+        let j = i;
+        if (RUN.test(str[i])) { while (j < str.length && RUN.test(str[j])) j++; }
+        else j = i + 1;
+        if (j - i > 1) {
+          const w = document.createElement('span');
+          w.className = 'aw';
+          for (let k = i; k < j; k++) w.appendChild(mkChar(str[k]));
+          frag.appendChild(w);
+        } else {
+          frag.appendChild(mkChar(str[i]));
+        }
+        i = j;
+      }
+      return frag;
+    };
+    const split = (node) => {                          /* 递归下钻，保留 <b> / <span class="b"> 等行内结构 */
+      [...node.childNodes].forEach(n => {
+        if (n.nodeType === 3) {
+          if (n.nodeValue) n.parentNode.replaceChild(fragOf(n.nodeValue), n);
+        } else if (n.nodeType === 1) {
+          split(n);
+        }
+      });
+    };
+    box.querySelectorAll('li').forEach(split);
+    box.querySelectorAll('.ach').forEach(el => chars.push(el));
+
+    if (chars.length) {
+      const paint = raf(() => {
+        const r = box.getBoundingClientRect(), vh = window.innerHeight;
+        const start = vh * 0.8, end = vh * 0.2;        /* 对应参考稿 offset ['start 0.8','end 0.2'] */
+        const p = clamp((start - r.top) / (start - end), 0, 1);
+        const head = p * (chars.length + 12) - 12;      /* 头部预留，保证收尾也能走完 */
+        for (let i = 0; i < chars.length; i++) {
+          const cp = clamp(head - i, 0, 1);
+          chars[i].style.opacity = (0.2 + 0.8 * cp).toFixed(3);
+        }
+      });
+      window.addEventListener('scroll', paint, { passive: true });
+      window.addEventListener('resize', paint, { passive: true });
+      paint();
+    }
+  })();
+
+  /* ── ③ 运行中把系统「减弱动效」打开 → 立即摘掉动效并清掉 JS 写过的内联样式 */
+  const kill = () => {
+    root.classList.remove('js-anim');
+    chars.forEach(c => { c.style.opacity = ''; });
+  };
+  if (mq.addEventListener) mq.addEventListener('change', e => { if (e.matches) kill(); });
+  else if (mq.addListener) mq.addListener(e => { if (e.matches) kill(); });
+})();
 </script>
 </body>
 </html>
