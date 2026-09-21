@@ -11,7 +11,10 @@ python scripts/github_trending_weekly.py
 # 2. 分析指定 GitHub 项目（单项目深度分析）
 python scripts/fetch_repo_info.py owner/repo
 
-# 3. 生成科普素材（基于最新一期报告，可选步骤）
+# 3. 海报卡片 HTML 生成后必须导出 PNG（poster_NN.png 落在 HTML 同目录）
+python scripts/export_posters.py output/analyze_owner_repo_cards_YYYYMMDD_HHMM.html
+
+# 4. 生成科普素材（基于最新一期报告，可选步骤）
 python scripts/generate_material.py
 ```
 
@@ -52,6 +55,8 @@ python scripts/generate_material.py
 output/
 ├── github_hot_analysis_YYYYMMDD_HHMM.html         # 批量分析报告
 ├── analyze_owner_repo_YYYYMMDD_HHMM.html           # 单项目分析报告
+├── analyze_owner_repo_cards_YYYYMMDD_HHMM.html      # 海报卡片 HTML（1080×810 固定画布）
+├── poster_NN.png                                    # 卡片导出的 PNG（export_posters.py，2160×1620 @2x）
 ├── latest.html                                      # 最新版报告（覆盖）
 ├── _repo_owner_repo.json                            # 单项目元数据缓存
 ├── analysis_history.json                            # 重复检测历史记录
@@ -72,6 +77,8 @@ output/
 - **UI UX PRO MAX**: 玻璃拟态卡片、弹性 spring 动效（cubic-bezier(0.34, 1.56, 0.64, 1)）、多层阴影体系
 
 ## 依赖
-- Python 标准库（urllib.request, json, datetime, re, pathlib）
+- Python 3.10+（脚本用了 `X | None` 注解）
+- 除海报导出外仅需标准库（urllib.request, json, datetime, re, pathlib）
+- 海报卡片导出需 `pip install playwright && playwright install chromium`
 - OSS Insight API 可访问
 - 网络连接正常

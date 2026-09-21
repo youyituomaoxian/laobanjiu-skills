@@ -57,7 +57,8 @@
 ## 快速开始
 
 ### 环境要求
-- Python 3.8+（标准库即可，无需第三方包）
+- Python 3.10+（脚本用了 `X | None` 注解）、标准库即可，无需第三方包
+  - 海报卡片导出（`export_posters.py`）另需 `pip install playwright && playwright install chromium`
 - 网络可访问 `ossinsight.io`
 - Windows / macOS / Linux 均可
 - **Windows 注意**：使用 `python` 命令而非 `python3`（WindowsApps 版会报 exit 49）
@@ -108,6 +109,17 @@ python scripts/generate_material.py
 
 素材脚本会解析 `output/latest.html`，提取项目元数据并创建分类目录结构，由 AI 创作提示词和口播文案。
 
+### 导出海报卡片 PNG
+
+单项目分析的卡片 HTML（`output/analyze_owner_repo_cards_YYYYMMDD_HHMM.html`）生成后运行：
+
+```bash
+python scripts/export_posters.py output/analyze_owner_repo_cards_YYYYMMDD_HHMM.html
+```
+
+Playwright 逐张截图 `.poster` 卡片，PNG 落在 HTML 同目录（`poster_01.png` …）。
+每张卡必须带 `class="poster"`，否则会被跳过。需先装 Playwright + Chromium。
+
 ---
 
 ## 目录结构
@@ -129,6 +141,8 @@ hot-analysis/
     ├── .gitkeep                                 # 占位文件，保证空目录入库
     ├── github_hot_analysis_YYYYMMDD_HHMM.html   # 批量分析报告
     ├── analyze_owner_repo_YYYYMMDD_HHMM.html    # 单项目分析报告
+    ├── analyze_owner_repo_cards_YYYYMMDD_HHMM.html  # 海报卡片 HTML（1080×810）
+    ├── poster_NN.png                            # 卡片导出 PNG（2160×1620 @2x）
     ├── latest.html                               # 最新报告（始终覆盖）
     ├── _repo_owner_repo.json                     # 单项目元数据缓存
     ├── analysis_history.json                     # 重复检测历史（60 天自动过期）

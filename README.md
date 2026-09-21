@@ -95,6 +95,8 @@ hot-analysis/
 ├── output/
 │   ├── github_hot_analysis_YYYYMMDD_HHMM.html    # 批量分析报告
 │   ├── analyze_owner_repo_YYYYMMDD_HHMM.html     # 单项目分析报告
+│   ├── analyze_owner_repo_cards_YYYYMMDD_HHMM.html # 海报卡片 HTML（1080×810）
+│   ├── poster_NN.png                              # 卡片导出 PNG（2160×1620 @2x）
 │   ├── latest.html                                # 最新报告（始终覆盖为最新）
 │   ├── _repo_owner_repo.json                      # 单项目元数据缓存（AI 读取用）
 │   ├── analysis_history.json                      # 重复检测历史（60 天自动过期）
@@ -319,6 +321,10 @@ MIT License。编排格式（format.py / publish.py）基于 [aws-wechat-article
 
 执行摘要 ｜ 行业界定与口径 ｜ 市场规模与增长 ｜ 产业链与利润池 ｜ 竞争格局 ｜ 供需与价格 ｜ 驱动因素（PESTEL + 政策时间线）｜ 情景预测（三情景 + 敏感性分析）｜ 风险与免责 ｜ 附录 A–D（来源清单 / 口径分歧矩阵 / 未找到来源清单 / 术语与缩写表）
 
+### 报告视觉
+
+默认 **弘讯暗色**（令牌取自弘讯 B 端设计系统 `tokens.json` 的 `dark` 节），配色遵循中国金融市场惯例**红涨绿跌**；单文件 HTML + Chart.js，零 React 依赖。附原生动效两件套（滚动显影 / 字符级显影），无 JS 或系统「减弱动效」时自动全部失效，打印导出 PDF 强制还原。细节见 `LBJ-行业分析/references/报告风格与组件规范.md`。
+
 ### 六条不可协商的数据纪律
 
 | # | 纪律 | 具体含义 |
@@ -376,7 +382,10 @@ laobanjiu-skills/
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则
 │   ├── README.md       → 详细说明
-│   └── reference/      → 对比方法论参考
+│   ├── .gitignore      → 忽略 output/ 产物
+│   ├── scripts/        → 3 个 Python 脚本（元数据 / 素材汇总 / 海报导出）
+│   ├── reference/      → 对比方法论参考
+│   └── output/         → 运行时产物（.gitkeep 占位）
 ├── ui-pipeline/        ← UI 三阶设计流水线
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则

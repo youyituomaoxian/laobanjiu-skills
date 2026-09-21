@@ -21,7 +21,7 @@ python .claude/skills/ui-ux-pro-max/scripts/search.py "<产品类型>" --design-
 |------|------|
 | **taste 参数范围** | 0-10 整数，5 为中立。小数/负数自动修正为就近合法值 |
 | **taste 优先级** | taste 是宏观审美约束，高于微观 prompt 元素过滤 |
-| **uupm 数据源** | OSS Insight API + README fetch（同 hot-analysis） |
+| **uupm 数据源** | 本地设计知识库（`search.py` 检索风格 / 色板 / 字体配对），不依赖任何网络 API |
 | **shadcn 平台限制** | 原生仅支持 Web。小程序→Taro，移动端→SwiftUI/Compose/Flutter |
 | **产物可存档** | 每个阶段输出独立快照，下次可从任意阶段恢复 |
 

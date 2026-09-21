@@ -5,11 +5,17 @@
 ## 快速开始
 
 ```bash
-# 单项目深解（复用 hot-analysis 基础设施）
+# 单项目元数据获取（本目录自带脚本，不依赖 hot-analysis）
 python scripts/fetch_repo_info.py owner/repo
 
 # 对比分析入口 —— AI 驱动，无需专门脚本
 # 用户说 "对比 A vs B" → AI 自动执行全流程
+
+# 卡片 HTML 生成后导出海报 PNG → output/posters/
+python scripts/export_posters.py output/compare_A_vs_B_卡片_YYYYMMDD_HHMM.html
+
+# 汇总素材目录（AI 随后写入提示词与口播稿）
+python scripts/generate_material.py
 ```
 
 ## 架构红线
@@ -44,7 +50,9 @@ python scripts/fetch_repo_info.py owner/repo
 
 ## 依赖
 
-- `scripts/fetch_repo_info.py` — 单项目元数据获取（复用）
-- `scripts/generate_material.py` — 素材目录创建（复用）
+- `scripts/fetch_repo_info.py` — 单项目元数据获取（本目录自带副本）
+- `scripts/generate_material.py` — 素材目录创建 + 产出汇总（本目录自带副本）
+- `scripts/export_posters.py` — 海报卡片 PNG 导出 → `output/posters/`，2160×1620 @2x
 - OSS Insight API + GitHub README fetch
-- Python 标准库
+- Python 标准库（脚本用了 `X | None` 注解，需 **Python 3.10+**）
+- 海报导出另需 `pip install playwright && playwright install chromium`

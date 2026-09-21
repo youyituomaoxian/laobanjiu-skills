@@ -1,8 +1,6 @@
-# Output
-**/output/*.html
-**/output/*.json
-**/output/素材输出_*/
-**/output/.gitkeep
+# Output（各 Skill 运行时产物；output/.gitkeep 占位已入库，不受影响）
+**/output/*
+!**/output/.gitkeep
 
 # Python
 __pycache__/

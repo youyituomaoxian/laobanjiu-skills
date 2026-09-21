@@ -5,7 +5,7 @@ description: "GitHub 热门开源项目深度分析——支持两种模式：�
 
 # GitHub 热门分析
 
-> **⚠️ 路径约定**：以下命令中的 `SKILL_DIR` 代表本 Skill 所在目录（`C:\Users\mask\.workbuddy\skills\hot-analysis\`），内含 `scripts/` 子目录。执行时请替换为实际路径，或确保已 `cd` 到 Skill 根目录。
+> **⚠️ 路径约定**：以下命令中的 `SKILL_DIR` 代表本 Skill 所在目录，内含 `scripts/` 子目录。执行时请替换为实际路径，或确保已 `cd` 到 Skill 根目录。
 
 本 Skill 支持两种分析模式：
 

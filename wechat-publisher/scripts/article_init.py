@@ -21,6 +21,8 @@
       └── imgs/                # 正文图片（可选）
 """
 
+from __future__ import annotations
+
 import argparse
 from pathlib import Path
 import sys

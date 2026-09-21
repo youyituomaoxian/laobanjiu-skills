@@ -33,8 +33,33 @@ compare A/B and C/D
 ## 输出
 
 - 🌐 **对比型 HTML 报告**（深色极简，锚点导航，对比表格，折叠面板）
-- 🃏 **海报卡片 PNG**（固定 1080×810 4:3 画布，6 张，2160×1620px @2x）
+- 🃏 **海报卡片 PNG**（固定 1080×810 4:3 画布，6 张，2160×1620px @2x，导出到 `output/posters/`）
 - 📦 **科普素材**（生图提示词 + 口播文案）
+
+---
+
+## 快速开始
+
+```bash
+git clone https://github.com/youyituomaoxian/laobanjiu-skills.git
+cd laobanjiu-skills/hot-compare
+
+# 1. 逐个拉取对比对象的元数据（每个项目跑一次）
+python scripts/fetch_repo_info.py owner1/repo1
+python scripts/fetch_repo_info.py owner2/repo2
+
+# 2. 对 Agent 说「对比 owner1/repo1 vs owner2/repo2」→ AI 执行 5 模块分析，
+#    输出长页 HTML + 卡片 HTML
+
+# 3. 卡片 HTML 生成后导出 PNG（输出到 output/posters/）
+python scripts/export_posters.py output/compare_A_vs_B_卡片_YYYYMMDD_HHMM.html
+
+# 4. 汇总素材目录（AI 随后写入提示词与口播稿）
+python scripts/generate_material.py
+```
+
+> 依赖：Python 3.10+（脚本用了 `X | None` 注解）、Python 标准库；海报导出另需
+> `pip install playwright && playwright install chromium`。
 
 ---
 
@@ -45,8 +70,14 @@ hot-compare/
 ├── SKILL.md                          ← Skill 定义
 ├── CLAUDE.md                         ← AI 项目规则
 ├── README.md                         ← 本文件
-└── reference/
-    └── 对比方法论_优化版.md            ← 5 模块对比框架
+├── .gitignore                        ← 忽略 output/ 产物
+├── scripts/
+│   ├── fetch_repo_info.py             ← 单项目元数据获取（OSS Insight API）
+│   ├── generate_material.py           ← 素材目录创建 + 产出汇总
+│   └── export_posters.py              ← 海报卡片 PNG 导出（posters/ @2x）
+├── reference/
+│   └── 对比方法论_优化版.md            ← 5 模块对比框架
+└── output/                            ← 运行时产物（报告 / 卡片 / posters / 素材包）
 ```
 
 ---
@@ -58,4 +89,6 @@ hot-compare/
 | 输入 | 1 个项目 | 2-5 个项目 |
 | 分析框架 | 5 块 | 5 模块 |
 | 输出 | HTML + 卡片 + 素材 | HTML + 卡片 + 素材 |
-| 基础设施 | fetch_repo_info.py | 复用 |
+| 基础设施 | 自带 `scripts/` | **自带独立 `scripts/`**（副本，互不依赖） |
+
+> 两个目录各自持有完整的 `scripts/`，可单独 clone 使用；改动一个不影响另一个。
