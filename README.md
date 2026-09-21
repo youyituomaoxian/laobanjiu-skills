@@ -107,7 +107,8 @@ hot-analysis/
 ├── scripts/
 │   ├── github_trending_weekly.py  # 热门抓取 + 去重 + HTML 生成
 │   ├── fetch_repo_info.py         # 单项目元数据获取（OSS Insight API）
-│   └── generate_material.py       # 素材目录创建 + 数据提取
+│   ├── generate_material.py       # 素材目录创建 + 数据提取
+│   └── export_posters.py          # 海报卡片 PNG 导出（Playwright 截图）
 ├── reference/
 │   └── 软件工具学习.md              # 5 块分析框架参考文档
 ├── SKILL.md                       # Open Agent Skill 定义
@@ -367,8 +368,10 @@ laobanjiu-skills/
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则
 │   ├── README.md       → 详细说明
-│   ├── scripts/        → Python 脚本
-│   └── reference/      → 分析框架参考
+│   ├── .gitignore      → 忽略 output/ 产物
+│   ├── scripts/        → 4 个 Python 脚本（趋势抓取 / 元数据 / 素材 / 海报导出）
+│   ├── reference/      → 分析框架参考
+│   └── output/         → 报告与素材产物（.gitkeep 占位）
 ├── hot-compare/        ← GitHub 项目对比 Skill
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则
@@ -382,8 +385,9 @@ laobanjiu-skills/
 │   ├── SKILL.md        → Agent Skill 定义
 │   ├── CLAUDE.md       → AI 项目规则
 │   ├── README.md       → 详细说明
-│   ├── scripts/        → Python 脚本（format / publish / setup 等）
-│   ├── presets/        → 排版主题 YAML
+│   ├── skill.json      → 技能元数据
+│   ├── scripts/        → Python 脚本（article_init / format / getdraft / publish / setup）
+│   ├── presets/        → 排版主题 YAML（formatting/ 下 3 套）
 │   ├── references/     → 微信限制 + 发布前清单
 │   └── templates/      → 项目初始化模板
 ├── adversarial-review/ ← 对抗性代码审查

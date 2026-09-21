@@ -117,13 +117,16 @@ hot-analysis/
 ├── README.md                            ← 本文件
 ├── SKILL.md                             ← Agent Skill 定义（标准 Open Agent Skill 格式）
 ├── CLAUDE.md                            ← AI Agent 项目规则
+├── .gitignore                           ← 忽略 output/ 下的产物
 ├── reference/
 │   └── 软件工具学习.md                  ← 5 块分析框架参考文档
 ├── scripts/
 │   ├── github_trending_weekly.py        ← 热门分析主脚本（抓取 + 去重 + HTML 生成）
 │   ├── fetch_repo_info.py               ← 单项目元数据获取（OSS Insight API）
-│   └── generate_material.py             ← 素材生成辅助脚本（目录创建 + 数据提取）
+│   ├── generate_material.py             ← 素材生成辅助脚本（目录创建 + 数据提取）
+│   └── export_posters.py                ← 海报卡片 PNG 导出（Playwright 截图 .poster 卡片 → poster_NN.png）
 └── output/                              ← 所有输出文件
+    ├── .gitkeep                                 # 占位文件，保证空目录入库
     ├── github_hot_analysis_YYYYMMDD_HHMM.html   # 批量分析报告
     ├── analyze_owner_repo_YYYYMMDD_HHMM.html    # 单项目分析报告
     ├── latest.html                               # 最新报告（始终覆盖）
