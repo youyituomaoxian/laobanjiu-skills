@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{行业名称}}行业分析报告 · {{报告年份}}</title>
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  LBJ-行业分析 · 报告外壳骨架（预设 A · hot-analysis 深藏蓝紫）
+
+  使用方式：
+  1. 复制本文件到 output/{行业名}/{行业名}_analysis_{年份}.html
+  2. 全文替换 {{...}} 占位符
+  3. 按 SLOT 注释填入 10 章内容
+  4. 不需要的图表整段删掉（canvas 与其 new Chart 调用要成对删）
+  5. 跑 scripts/validate-report.mjs <报告路径> 确认结构一致
+
+  配色纪律：不得新增令牌外的 hex。图表颜色只能取自下方 JS 常量。
+  ═══════════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --bg:#0b0f19;
+  --surface:#131a2b;
+  --surface2:#1a2339;
+  --border:#1e2d4a;
+  --border-soft:#16203a;
+  --text:#e2e8f0;
+  --text2:#94a3b8;
+  --text3:#64748b;
+  --accent:#a78bfa;
+  --accent2:#38bdf8;
+  --green:#34d399; --red:#f87171; --orange:#fb923c; --yellow:#fbbf24;
+  /* 中国金融市场惯例：红涨绿跌 */
+  --up:var(--red); --down:var(--green);
+  /* 语义别名，便于沿用旧类名 */
+  --background:var(--bg); --card:var(--surface); --card-2:var(--surface2);
+  --foreground:var(--text); --muted:var(--text2); --muted-2:var(--text3);
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  --font-mono:'JetBrains Mono','Cascadia Code','Fira Code',Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--font-sans);font-size:15px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:6px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#243352}
+a{color:var(--accent2);text-decoration:none}
+.num,.mono{font-family:var(--font-mono);font-feature-settings:"tnum"}
+
+/* ── 元素1 · Hero ─────────────────────────────────────────────── */
+header{
+  position:relative;min-height:50vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:80px 24px 64px;border-bottom:1px solid var(--border);overflow:hidden;
+}
+header::before,header::after{
+  content:"";position:absolute;border-radius:50%;pointer-events:none;
+}
+header::before{
+  width:900px;height:900px;top:-420px;left:-260px;
+  background:radial-gradient(circle,rgba(167,139,250,.10) 0%,transparent 65%);
+  animation:drift 10s ease-in-out infinite alternate;
+}
+header::after{
+  width:760px;height:760px;bottom:-400px;right:-220px;
+  background:radial-gradient(circle,rgba(56,189,248,.06) 0%,transparent 65%);
+  animation:drift 10s ease-in-out infinite alternate-reverse;
+}
+@keyframes drift{from{transform:translate3d(0,0,0)}to{transform:translate3d(3%,-3%,0)}}
+.kicker{
+  position:relative;font-size:13px;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--accent);font-weight:600;margin:0 0 18px;
+}
+/* ── 元素2 · 渐变标题 ─────────────────────────────────────────── */
+h1{
+  position:relative;margin:0 0 20px;font-size:clamp(30px,5vw,46px);font-weight:800;
+  line-height:1.25;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#e2e8f0,#a78bfa,#38bdf8);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.sub{
+  position:relative;margin:0 0 28px;font-size:clamp(14px,2vw,18px);
+  color:var(--text2);max-width:640px;line-height:1.75;
+}
+/* 报告头部元信息 */
+.meta-head{
+  position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px;
+}
+.chip{
+  font-family:var(--font-mono);font-size:12px;color:var(--text3);
+  background:var(--surface);border:1px solid var(--border);
+  padding:5px 11px;border-radius:6px;white-space:nowrap;
+}
+.chip b{color:var(--text2);font-weight:600}
+
+/* ── 元素4 · 锚点导航 ────────────────────────────────────────── */
+nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(11,15,25,.85);
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:10px 16px;overflow-x:auto;white-space:nowrap;
+}
+nav::-webkit-scrollbar{height:0}
+nav a{
+  display:inline-block;padding:8px 16px;margin-right:4px;border-radius:6px;
+  font-size:13px;font-weight:600;color:var(--text2);transition:.18s;
+}
+nav a:hover{background:var(--surface2);color:var(--text)}
+
+/* ── 容器 ─────────────────────────────────────────────────────── */
+.wrap{max-width:960px;margin:0 auto;padding:0 24px 80px}
+section{padding:56px 0 8px;border-bottom:1px solid var(--border-soft)}
+section:last-of-type{border-bottom:none}
+/* ── 元素3 · 编号徽章 ────────────────────────────────────────── */
+section h2{
+  display:flex;align-items:center;gap:14px;
+  margin:0 0 14px;font-size:26px;font-weight:700;letter-spacing:-.01em;line-height:1.3;
+}
+.idx{
+  flex:none;width:36px;height:36px;line-height:36px;text-align:center;
+  border-radius:8px;background:rgba(167,139,250,.12);color:var(--accent);
+  font-family:var(--font-mono);font-size:15px;font-weight:700;
+}
+.lead{margin:0 0 26px;font-size:14px;color:var(--text2);line-height:1.8}
+h3{
+  display:flex;align-items:center;gap:9px;
+  margin:32px 0 12px;font-size:15px;font-weight:600;color:var(--accent2);
+}
+h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--accent);flex:none}
+p{margin:0 0 14px;color:var(--text2)}
+strong{color:var(--text);font-weight:600}
+
+/* ── 卡片与指标 ───────────────────────────────────────────────── */
+.grid{display:grid;gap:14px;margin:18px 0}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px;transition:border-color .2s;
+}
+.card:hover{border-color:var(--text3)}
+.card h4{margin:0 0 8px;font-size:14px;font-weight:600;color:var(--text)}
+.card p:last-child{margin-bottom:0}
+.kpi .lbl{font-size:12px;color:var(--text3);letter-spacing:.03em;margin:0 0 8px}
+.kpi .val{
+  font-family:var(--font-mono);font-feature-settings:"tnum";
+  font-size:26px;font-weight:600;color:var(--text);line-height:1.15;margin:0 0 6px;
+}
+.kpi .delta{font-family:var(--font-mono);font-size:13px;margin:0 0 4px}
+.kpi .note{font-size:12px;color:var(--text3);margin:0;line-height:1.6}
+
+/* ── 元素6 · 摘要盒 ──────────────────────────────────────────── */
+.summary-box{
+  border-radius:12px;padding:20px 24px;margin:22px 0;
+  background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(56,189,248,.06));
+  border:1px solid rgba(167,139,250,.2);
+}
+.summary-box .ttl{
+  font-size:13px;font-weight:600;color:var(--accent);
+  letter-spacing:.05em;margin:0 0 12px;text-transform:uppercase;
+}
+.summary-box ul{margin:0;padding:0;list-style:none}
+.summary-box li{margin-bottom:10px;padding-left:20px;position:relative;color:var(--text2);font-size:14px}
+.summary-box li:last-child{margin-bottom:0}
+.summary-box li::before{content:"✦";position:absolute;left:0;color:var(--accent);font-size:11px;top:1px}
+.summary-box li b{color:var(--text)}
+
+/* ── 元素5 · 提示框（圆角 8px，无左侧色条） ───────────────────── */
+.callout{
+  border-radius:8px;padding:14px 18px;margin:18px 0;font-size:13.5px;
+  line-height:1.75;border:1px solid;color:var(--text2);
+}
+.callout b{color:var(--text)}
+.callout .ct{
+  display:block;font-weight:600;font-size:12px;letter-spacing:.05em;
+  text-transform:uppercase;margin-bottom:6px;
+}
+.tip{background:rgba(56,189,248,.06);border-color:rgba(56,189,248,.15)}
+.tip .ct{color:var(--accent2)}
+.warn{background:rgba(251,146,60,.06);border-color:rgba(251,146,60,.15)}
+.warn .ct{color:var(--orange)}
+.crit{background:rgba(248,113,113,.06);border-color:rgba(248,113,113,.15)}
+.crit .ct{color:var(--red)}
+.ok{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.15)}
+.ok .ct{color:var(--green)}
+
+/* ── 元素7 · 表格 ────────────────────────────────────────────── */
+.tw{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+thead th{
+  background:var(--surface2);color:var(--text3);
+  font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  text-align:left;padding:12px 14px;white-space:nowrap;border-bottom:1px solid var(--border);
+}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border-soft);color:var(--text2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(167,139,250,.03)}
+tbody td.num,thead th.num{font-family:var(--font-mono);font-feature-settings:"tnum";text-align:right}
+tbody td b{color:var(--text)}
+
+/* ── 图表容器 ─────────────────────────────────────────────────── */
+.chart-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px 20px;margin:20px 0;
+}
+.chart-box .ttl{font-size:14px;font-weight:600;color:var(--text);margin:0 0 4px}
+.chart-box .cap{font-family:var(--font-mono);font-size:11.5px;color:var(--text3);margin:0 0 14px;line-height:1.6}
+.chart-hold{position:relative;height:300px}
+.chart-hold.tall{height:360px}
+
+/* ── 产业链结构图 ─────────────────────────────────────────────── */
+.chain{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:18px 0}
+.node{
+  flex:1 1 150px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:14px;text-align:center;
+}
+.node .n-t{font-size:12px;color:var(--text3);margin:0 0 6px}
+.node .n-v{font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--text);margin:0 0 4px}
+.node .n-d{font-size:11.5px;color:var(--text3);margin:0;line-height:1.55}
+.node.hot{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.05)}
+.node.hot .n-v{color:var(--red)}
+.node.cold{border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.04)}
+.node.cold .n-v{color:var(--green)}
+
+/* ── 时间线 ───────────────────────────────────────────────────── */
+.tl{margin:18px 0;padding-left:22px;border-left:1px solid var(--border)}
+.tl-i{position:relative;padding-bottom:18px}
+.tl-i:last-child{padding-bottom:0}
+.tl-i::before{
+  content:"";position:absolute;left:-27px;top:7px;width:9px;height:9px;
+  border-radius:50%;background:var(--text3);border:2px solid var(--bg);
+}
+.tl-i.pos::before{background:var(--green)}
+.tl-i.neg::before{background:var(--red)}
+.tl-d{font-family:var(--font-mono);font-size:11.5px;color:var(--accent);margin:0 0 4px}
+.tl-c{font-size:13.5px;color:var(--text2);margin:0;line-height:1.7}
+.tl-c b{color:var(--text)}
+
+/* ── 可信度徽章 ───────────────────────────────────────────────── */
+.b{
+  display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:600;
+  padding:2px 7px;border-radius:5px;white-space:nowrap;line-height:1.5;
+}
+.b-3{background:rgba(52,211,153,.12);color:var(--green)}
+.b-2{background:rgba(251,191,36,.12);color:var(--yellow)}
+.b-1{background:rgba(248,113,113,.12);color:var(--red)}
+.b-n{background:rgba(100,116,139,.14);color:var(--text3)}
+
+/* ── 风险清单 ─────────────────────────────────────────────────── */
+.risk{
+  display:flex;gap:14px;align-items:flex-start;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:15px 18px;margin:12px 0;
+}
+.risk .lv{
+  flex:none;font-family:var(--font-mono);font-size:11px;font-weight:600;
+  padding:3px 9px;border-radius:5px;margin-top:2px;
+}
+.lv-h{background:rgba(248,113,113,.12);color:var(--red)}
+.lv-m{background:rgba(251,146,60,.12);color:var(--orange)}
+.lv-l{background:rgba(100,116,139,.14);color:var(--text3)}
+.risk .r-c{flex:1}
+.risk .r-t{font-size:14px;font-weight:600;color:var(--text);margin:0 0 5px}
+.risk .r-d{font-size:13px;color:var(--text2);margin:0;line-height:1.7}
+
+/* ── 涨跌语义色 ───────────────────────────────────────────────── */
+.up{color:var(--up)}
+.down{color:var(--down)}
+.neu{color:var(--text2)}
+
+/* ── 元素8 · 回到顶部 ────────────────────────────────────────── */
+.btt{
+  position:fixed;right:24px;bottom:24px;z-index:60;width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;border-radius:12px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text2);font-size:17px;transition:.2s;
+}
+.btt:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── 页脚 ─────────────────────────────────────────────────────── */
+footer{
+  border-top:1px solid var(--border);padding:32px 24px 48px;text-align:center;
+  font-size:12px;color:var(--text3);line-height:1.9;
+}
+footer b{color:var(--text2)}
+
+/* ── 动效降级（强制） ────────────────────────────────────────── */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
+  html{scroll-behavior:auto}
+}
+@media (max-width:900px){
+  .g3,.g4{grid-template-columns:repeat(2,1fr)}
+  section h2{font-size:22px}
+}
+@media (max-width:640px){
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  nav a{font-size:12px;padding:7px 12px}
+  .idx{width:30px;height:30px;line-height:30px;font-size:13px}
+  section h2{font-size:19px;gap:10px}
+  .chart-hold{height:250px}
+}
+/* ── 打印 ─────────────────────────────────────────────────────── */
+@media print{
+  .btt,nav{display:none!important}
+  body{background:#fff;color:#111}
+  header::before,header::after{display:none}
+  section{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <p class="kicker">Industry Research · LBJ</p>
+  <h1>{{行业名称}}行业分析报告</h1>
+  <p class="sub">{{一句话点出本行业当前所处阶段与核心矛盾，30–60 字}}</p>
+  <div class="meta-head">
+    <span class="chip"><b>口径基准</b> {{口径基准}}</span>
+    <span class="chip"><b>分析周期</b> {{分析周期}}</span>
+    <span class="chip"><b>数据截止</b> {{数据截止日}}</span>
+    <span class="chip"><b>报告生成</b> {{报告生成日}}</span>
+    <span class="chip"><b>币种</b> {{主币种}} @ {{汇率时点}}</span>
+    <span class="chip"><b>来源数</b> {{来源数}}</span>
+  </div>
+  <!-- 做过订正时保留，否则删除 -->
+  <div class="callout tip">
+    <span class="ct">修订记录</span>
+    {{日期}} 初版发布。｜ {{日期}} 订正 {{章节}}：{原值} → {新值}，原因 {一句话}。
+  </div>
+</header>
+
+<nav>
+  <a href="#sec-summary">01 执行摘要</a>
+  <a href="#sec-scope">02 行业界定</a>
+  <a href="#sec-market">03 市场规模</a>
+  <a href="#sec-chain">04 产业链</a>
+  <a href="#sec-competition">05 竞争格局</a>
+  <a href="#sec-supply">06 供需与价格</a>
+  <a href="#sec-drivers">07 驱动因素</a>
+  <a href="#sec-scenario">08 情景预测</a>
+  <a href="#sec-risk">09 风险与免责</a>
+  <a href="#sec-appendix">10 附录</a>
+</nav>
+
+<div class="wrap">
+
+<!-- ═══ 01 执行摘要 ═══════════════════════════════════════════ -->
+<section id="sec-summary">
+  <h2><span class="idx" aria-hidden="true">01</span>执行摘要</h2>
+  <p class="lead">{{本章导语：一句话说明这一章解决什么问题}}</p>
+
+  <!-- SLOT：5 条核心结论，每条必带数字 -->
+  <div class="summary-box">
+    <p class="ttl">核心结论</p>
+    <ul>
+      <li>{{结论1：含具体数字 + 可信度徽章}}</li>
+      <li>{{结论2}}</li>
+      <li>{{结论3}}</li>
+      <li>{{结论4}}</li>
+      <li>{{结论5}}</li>
+    </ul>
+  </div>
+
+  <!-- SLOT：4 张 KPI 卡 -->
+  <div class="grid g4">
+    <div class="card kpi">
+      <p class="lbl">{{指标名}}</p>
+      <p class="val">{{数值}}</p>
+      <p class="delta up">{{+X%}} 同比</p>
+      <p class="note">{{口径 + 来源}}</p>
+    </div>
+    <div class="card kpi">
+      <p class="lbl">{{指标名}}</p>
+      <p class="val">{{数值}}</p>
+      <p class="delta neu">{{X%}} 同比</p>
+      <p class="note">{{口径 + 来源}}</p>
+    </div>
+    <div class="card kpi">
+      <p class="lbl">{{指标名}}</p>
+      <p class="val">{{数值}}</p>
+      <p class="delta down">{{-X%}} 同比</p>
+      <p class="note">{{口径 + 来源}}</p>
+    </div>
+    <div class="card kpi">
+      <p class="lbl">{{指标名}}</p>
+      <p class="val">{{数值}}</p>
+      <p class="delta neu">{{说明}}</p>
+      <p class="note">{{口径 + 来源}}</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 02 行业界定与口径 ═══════════════════════════════════════ -->
+<section id="sec-scope">
+  <h2><span class="idx" aria-hidden="true">02</span>行业界定与口径说明</h2>
+  <p class="lead">本章钉死 7 项边界，全文统一口径，后续所有数字不得越界。</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>边界项</th><th>本报告采用</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><b>行业定义</b></td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td><b>分类代码</b></td><td>{{国标/申万/自定义}}</td><td>{{}}</td></tr>
+        <tr><td><b>聚焦环节</b></td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td><b>地理范围</b></td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td><b>时间边界</b></td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td><b>核心指标</b></td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td><b>易混邻近行业</b></td><td>{{}}</td><td>{{为何不计入}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 含子赛道时保留，否则删除 -->
+  <h3>子赛道拆分</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>子赛道</th><th class="num">规模</th><th class="num">占比</th><th>代表玩家</th></tr></thead>
+      <tbody>
+        <tr><td>{{}}</td><td class="num">{{}}</td><td class="num">{{}}</td><td>{{}}</td></tr>
+        <tr><td><b>合计</b></td><td class="num">{{须等于全行业合计}}</td><td class="num">100%</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout warn">
+    <span class="ct">口径提醒</span>
+    子赛道规模之和必须等于全行业合计；汇总增速须按规模加权，不得算术平均。
+  </div>
+</section>
+
+<!-- ═══ 03 市场规模与增长 ═══════════════════════════════════════ -->
+<section id="sec-market">
+  <h2><span class="idx" aria-hidden="true">03</span>市场规模与增长</h2>
+  <p class="lead">先给口径分歧矩阵，再谈数字。历史基线多源差异 &gt;20% 时不给单点增速，只给区间。</p>
+
+  <h3>口径分歧矩阵</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>来源</th><th>发布机构</th><th class="num">数值</th><th>口径边界</th><th>可信度</th></tr></thead>
+      <tbody>
+        <tr><td>{{}}</td><td>{{}}</td><td class="num">{{}}</td><td>{{}}</td><td><span class="b b-3">★★★</span></td></tr>
+        <tr><td>{{}}</td><td>{{}}</td><td class="num">{{}}</td><td>{{}}</td><td><span class="b b-2">★★</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>分歧成因定位：</strong>{{逐条说明是「看似矛盾」（口径不同可调和）还是「真正冲突」（同口径不同值）}}</p>
+
+  <!-- SLOT：图表1 规模趋势（柱+折线双轴） -->
+  <div class="chart-box">
+    <p class="ttl">{{标题：XX 年市场规模与增速}}</p>
+    <p class="cap">单位：{{亿美元}} ｜ 来源：{{}} ｜ 数据截止 {{}}</p>
+    <div class="chart-hold"><canvas id="c-market"></canvas></div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>年份</th><th class="num">规模</th><th class="num">同比</th><th>可信度</th><th>备注</th></tr></thead>
+      <tbody>
+        <tr><td class="num">{{年}}</td><td class="num">{{}}</td><td class="num up">{{+X%}}</td><td><span class="b b-3">★★★</span></td><td>{{}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ 04 产业链与利润池 ═══════════════════════════════════════ -->
+<section id="sec-chain">
+  <h2><span class="idx" aria-hidden="true">04</span>产业链与利润池</h2>
+  <p class="lead">上中下游拆解 → 每环节毛利率区间／议价能力／壁垒 → 利润池分布与瓶颈环节。</p>
+
+  <!-- SLOT：结构图。.hot 标利润流出点/高壁垒，.cold 标低毛利环节 -->
+  <div class="chain">
+    <div class="node cold"><p class="n-t">上游</p><p class="n-v">{{毛利率区间}}</p><p class="n-d">{{主要玩家／壁垒}}</p></div>
+    <div class="node"><p class="n-t">中游</p><p class="n-v">{{毛利率区间}}</p><p class="n-d">{{主要玩家／壁垒}}</p></div>
+    <div class="node hot"><p class="n-t">下游</p><p class="n-v">{{毛利率区间}}</p><p class="n-d">{{主要玩家／壁垒}}</p></div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>环节</th><th>主要玩家</th><th class="num">毛利率</th><th>议价能力</th><th>进入壁垒</th><th>利润占比</th></tr></thead>
+      <tbody>
+        <tr><td>{{}}</td><td>{{}}</td><td class="num">{{}}</td><td>{{强/中/弱}}</td><td>{{高/中/低}}</td><td class="num">{{}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout tip">
+    <span class="ct">利润池结论</span>
+    最厚环节为 <b>{{}}</b>，占行业利润 <b>{{X%}}</b>；瓶颈环节为 <b>{{}}</b>，原因是 {{}}。
+  </div>
+</section>
+
+<!-- ═══ 05 竞争格局 ═════════════════════════════════════════════ -->
+<section id="sec-competition">
+  <h2><span class="idx" aria-hidden="true">05</span>竞争格局</h2>
+  <p class="lead">玩家名单（≥10 家）→ 份额与集中度 → 龙头财务对比 → 份额演变 → 投融资。</p>
+
+  <!-- SLOT：图表2 竞争份额（横向条形） -->
+  <div class="chart-box">
+    <p class="ttl">{{标题：主要玩家市场份额}}</p>
+    <p class="cap">单位：% ｜ 指标口径：{{按收入/按用户/按 GMV}} ｜ 来源：{{}}</p>
+    <div class="chart-hold"><canvas id="c-share"></canvas></div>
+  </div>
+
+  <!-- SLOT：图表3 集中度趋势（折线） -->
+  <div class="chart-box">
+    <p class="ttl">{{标题：CR4 / CR8 演变}}</p>
+    <p class="cap">单位：% ｜ 来源：{{}} ｜ 缺失年份留空</p>
+    <div class="chart-hold"><canvas id="c-cr"></canvas></div>
+  </div>
+
+  <h3>上市公司财务对照</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>公司</th><th>代码</th><th class="num">营收</th><th class="num">净利润</th><th class="num">毛利率</th><th>数据期</th><th>可信度</th></tr></thead>
+      <tbody>
+        <tr><td>{{}}</td><td class="num">{{}}</td><td class="num">{{}}</td><td class="num">{{}}</td><td class="num">{{}}</td><td>{{}}</td><td><span class="b b-3">★★★</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SLOT：图表4 波特五力（雷达） -->
+  <div class="chart-box">
+    <p class="ttl">波特五力强度</p>
+    <p class="cap">分值 1–5，越高压力越大 ｜ 依据见下表</p>
+    <div class="chart-hold"><canvas id="c-five"></canvas></div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>五力</th><th>强度</th><th>事实依据</th></tr></thead>
+      <tbody>
+        <tr><td>现有竞争者</td><td>{{强/中/弱}}</td><td>{{}}</td></tr>
+        <tr><td>新进入者威胁</td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td>替代品威胁</td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td>供应商议价能力</td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td>购买者议价能力</td><td>{{}}</td><td>{{}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ 06 供需与价格 ═══════════════════════════════════════════ -->
+<section id="sec-supply">
+  <h2><span class="idx" aria-hidden="true">06</span>供需与价格</h2>
+  <p class="lead">供给｜需求｜库存｜价格走势与周期位置｜成本曲线，判断产能周期阶段。</p>
+
+  <h3>供需平衡表</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>项目</th><th class="num">{{年}}</th><th class="num">{{年}}</th><th class="num">{{年E}}</th></tr></thead>
+      <tbody>
+        <tr><td><b>供给</b></td><td class="num">{{}}</td><td class="num">{{}}</td><td class="num">{{}}</td></tr>
+        <tr><td>需求</td><td class="num">{{}}</td><td class="num">{{}}</td><td class="num">{{}}</td></tr>
+        <tr><td><b>供需差</b></td><td class="num up">{{}}</td><td class="num">{{}}</td><td class="num down">{{}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SLOT：图表5 价格走势（折线） -->
+  <div class="chart-box">
+    <p class="ttl">{{标题：XX 价格走势}}</p>
+    <p class="cap">单位：{{元/吨 等}} ｜ 来源：{{}} ｜ 历史段与预测段颜色须区分</p>
+    <div class="chart-hold"><canvas id="c-price"></canvas></div>
+  </div>
+
+  <div class="callout tip">
+    <span class="ct">周期位置</span>
+    当前处于产能周期的 <b>{{阶段}}</b>，判断依据：{{产能利用率 / 库存天数 / 价格分位}}。
+  </div>
+</section>
+
+<!-- ═══ 07 驱动因素 ═════════════════════════════════════════════ -->
+<section id="sec-drivers">
+  <h2><span class="idx" aria-hidden="true">07</span>驱动因素</h2>
+  <p class="lead">PESTEL 逐项给「方向 + 强度 + 文件/数据依据」；政策时间线 ≥10 条，须核到发布机构官网。</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>维度</th><th>方向</th><th>强度</th><th>依据</th></tr></thead>
+      <tbody>
+        <tr><td>P 政治</td><td>{{利好/利空}}</td><td>{{强/中/弱}}</td><td>{{}}</td></tr>
+        <tr><td>E 经济</td><td>{{}}</td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td>S 社会</td><td>{{}}</td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td>T 技术</td><td>{{}}</td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td>E 环境</td><td>{{}}</td><td>{{}}</td><td>{{}}</td></tr>
+        <tr><td>L 法律</td><td>{{}}</td><td>{{}}</td><td>{{}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>政策时间线</h3>
+  <!-- SLOT：.pos 绿点=利好，.neg 红点=约束。日期与文号必须回源核验 -->
+  <div class="tl">
+    <div class="tl-i pos">
+      <p class="tl-d">{{YYYY-MM-DD}} · {{文号}}</p>
+      <p class="tl-c"><b>{{文件全称}}</b> — {{影响方向与要点}}</p>
+    </div>
+    <div class="tl-i neg">
+      <p class="tl-d">{{YYYY-MM-DD}} · {{文号}}</p>
+      <p class="tl-c"><b>{{文件全称}}</b> — {{影响方向与要点}}</p>
+    </div>
+  </div>
+  <div class="callout warn">
+    <span class="ct">核验要求</span>
+    政策日期与文号必须核到发布机构官网或权威法源，不得沿用二手转载的日期。同一政策条文若同时含鼓励与监管双重效应，须并列写出。
+  </div>
+</section>
+
+<!-- ═══ 08 情景预测 ═════════════════════════════════════════════ -->
+<section id="sec-scenario">
+  <h2><span class="idx" aria-hidden="true">08</span>情景预测</h2>
+  <p class="lead">三情景概率合计 100%，每个给量化目标 + 可观测触发信号；加敏感性分析。</p>
+
+  <!-- SLOT：图表6 三情景路径（多线） -->
+  <div class="chart-box">
+    <p class="ttl">{{标题：三情景规模路径}}</p>
+    <p class="cap">单位：{{}} ｜ 历史段用灰色（MUTE）与预测段区分 ｜ 预测值非事实</p>
+    <div class="chart-hold tall"><canvas id="c-scenario"></canvas></div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card">
+      <h4 class="up">乐观 · {{X%}}</h4>
+      <p>{{量化目标}}</p>
+      <p><strong>触发信号：</strong>{{可观测指标 + 阈值}}</p>
+    </div>
+    <div class="card">
+      <h4>中性 · {{X%}}</h4>
+      <p>{{量化目标}}</p>
+      <p><strong>触发信号：</strong>{{}}</p>
+    </div>
+    <div class="card">
+      <h4 class="down">悲观 · {{X%}}</h4>
+      <p>{{量化目标}}</p>
+      <p><strong>触发信号：</strong>{{}}</p>
+    </div>
+  </div>
+
+  <h3>敏感性分析</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>变量</th><th class="num">基准</th><th class="num">−20%</th><th class="num">+20%</th><th>对结论影响</th></tr></thead>
+      <tbody>
+        <tr><td>{{}}</td><td class="num">{{}}</td><td class="num">{{}}</td><td class="num">{{}}</td><td>{{}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ 09 风险与免责 ═══════════════════════════════════════════ -->
+<section id="sec-risk">
+  <h2><span class="idx" aria-hidden="true">09</span>风险提示与免责声明</h2>
+  <p class="lead">{{本章导语}}</p>
+
+  <!-- SLOT：每条风险给「等级 + 描述 + 观察指标」 -->
+  <div class="risk">
+    <span class="lv lv-h">高</span>
+    <div class="r-c">
+      <p class="r-t">{{风险标题}}</p>
+      <p class="r-d">{{具体描述}}　<b>观察指标：</b>{{可跟踪的量化指标}}</p>
+    </div>
+  </div>
+  <div class="risk">
+    <span class="lv lv-m">中</span>
+    <div class="r-c">
+      <p class="r-t">{{风险标题}}</p>
+      <p class="r-d">{{具体描述}}　<b>观察指标：</b>{{}}</p>
+    </div>
+  </div>
+  <div class="risk">
+    <span class="lv lv-l">低</span>
+    <div class="r-c">
+      <p class="r-t">{{风险标题}}</p>
+      <p class="r-d">{{具体描述}}</p>
+    </div>
+  </div>
+
+  <div class="callout crit">
+    <span class="ct">免责声明</span>
+    本报告基于公开信息整理，不构成任何投资建议。市场规模等数据因统计口径不同存在差异，已在附录 B 列明。预测部分为情景推演，非事实陈述。{{如需打印为 PDF，请在浏览器中开启「背景图形」以保证深色主题正确输出。}}
+  </div>
+</section>
+
+<!-- ═══ 10 附录 ═════════════════════════════════════════════════ -->
+<section id="sec-appendix">
+  <h2><span class="idx" aria-hidden="true">10</span>附录</h2>
+
+  <h3>附录 A · 数据来源清单</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>#</th><th>来源</th><th>URL</th><th>发布时间</th><th>引用章节</th><th>可信度</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>{{}}</td><td class="mono">{{}}</td><td class="num">{{}}</td><td>{{}}</td><td><span class="b b-3">★★★</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>附录 B · 口径分歧矩阵（汇总）</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>指标</th><th>来源</th><th class="num">数值</th><th>口径边界</th><th>分歧成因</th></tr></thead>
+      <tbody>
+        <tr><td>{{}}</td><td>{{}}</td><td class="num">{{}}</td><td>{{}}</td><td>{{}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>附录 C · 未找到公开来源清单</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>指标</th><th>尝试来源</th><th>处理方式</th></tr></thead>
+      <tbody>
+        <tr><td>{{}}</td><td>{{}}</td><td>留空未估算</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>附录 D · 术语与缩写表</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>术语 / 缩写</th><th>英文全称</th><th>含义</th></tr></thead>
+      <tbody>
+        <tr><td>{{}}</td><td>{{}}</td><td>{{}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <p><b>{{行业名称}}行业分析报告</b> · {{报告生成日}}</p>
+  <p>数据截止 {{数据截止日}} ｜ 主币种 {{主币种}} ｜ 口径基准 {{口径基准}}</p>
+  <p>可信度分级：<span class="b b-3">★★★</span> 双独立源交叉验证 ｜ <span class="b b-2">★★</span> 单一权威源 ｜ <span class="b b-1">★</span> 存疑 ｜ <span class="b b-n">【估算】</span> 推算值</p>
+  <p>生成工具：LBJ-行业分析 ｜ 本报告不构成投资建议</p>
+</footer>
+
+<a class="btt" href="#" aria-label="回到顶部">↑</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* ═══ 全局默认 ══════════════════════════════════════════════════ */
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.borderColor = '#16203a';
+
+/* 颜色常量：只能取这些，不得新增 hex */
+const UP='#f87171', DOWN='#34d399', BLUE='#38bdf8', CYAN='#a78bfa', PURPLE='#a78bfa',
+      ORANGE='#fb923c', YELLOW='#fbbf24', MUTE='#64748b';
+const GRID = {color:'#16203a', drawBorder:false};
+const TT = {backgroundColor:'#131a2b', borderColor:'#1e2d4a', borderWidth:1,
+            titleColor:'#e2e8f0', bodyColor:'#94a3b8', padding:10, cornerRadius:8,
+            displayColors:true, boxPadding:4};
+const LEG = {labels:{usePointStyle:true, pointStyle:'circle', boxWidth:7, padding:14, color:'#94a3b8'}};
+const PCT = v => v==null ? '' : v + '%';
+
+/* ── 01 规模趋势（柱+折线双轴） ───────────────────────────────── */
+new Chart(document.getElementById('c-market'), {
+  data:{
+    labels:['2021','2022','2023','2024','2025'],           /* ✎ 替换 */
+    datasets:[
+      {type:'bar', label:'市场规模', data:[0,0,0,0,0],      /* ✎ 替换 */
+       backgroundColor:'rgba(167,139,250,.55)', borderRadius:5, yAxisID:'y', order:2},
+      {type:'line', label:'同比增速', data:[0,0,0,0,0],      /* ✎ 替换 */
+       borderColor:ORANGE, backgroundColor:ORANGE, borderWidth:2,
+       pointRadius:3, tension:.32, yAxisID:'y1', order:1}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{legend:LEG, tooltip:TT},
+    scales:{
+      y:{beginAtZero:true, grid:GRID, border:{display:false},
+         title:{display:true, text:'{{单位}}', color:'#64748b', font:{size:11}}},
+      y1:{position:'right', beginAtZero:true, grid:{display:false}, border:{display:false},
+          ticks:{callback:PCT},
+          title:{display:true, text:'同比 %', color:'#64748b', font:{size:11}}},
+      x:{grid:{display:false}, border:{display:false}}
+    }
+  }
+});
+
+/* ── 02 竞争份额（横向条形） ─────────────────────────────────── */
+new Chart(document.getElementById('c-share'), {
+  type:'bar',
+  data:{
+    labels:['玩家A','玩家B','玩家C','玩家D','玩家E','其他'],   /* ✎ 替换 */
+    datasets:[{label:'份额', data:[0,0,0,0,0,0],             /* ✎ 替换 */
+      backgroundColor:['#f87171','#fb923c','#fbbf24','#38bdf8','#a78bfa','#334155'],
+      borderRadius:4}]
+  },
+  options:{
+    indexAxis:'y', responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{...TT, callbacks:{label:c=>' 份额 '+c.parsed.x+'%'}}},
+    scales:{
+      x:{beginAtZero:true, grid:GRID, border:{display:false}, ticks:{callback:PCT},
+         title:{display:true, text:'份额 %', color:'#64748b', font:{size:11}}},
+      y:{grid:{display:false}, border:{display:false}}
+    }
+  }
+});
+
+/* ── 03 集中度趋势（折线，缺失年份留空） ─────────────────────── */
+new Chart(document.getElementById('c-cr'), {
+  type:'line',
+  data:{
+    labels:['2021','2022','2023','2024','2025'],                 /* ✎ 替换 */
+    datasets:[
+      {label:'CR4', data:[0,0,0,0,0], borderColor:CYAN, backgroundColor:'rgba(167,139,250,.10)',
+       fill:true, tension:.32, borderWidth:2, pointRadius:3, spanGaps:false},
+      {label:'CR8', data:[0,0,0,0,0], borderColor:BLUE, backgroundColor:BLUE,
+       tension:.32, borderWidth:2, pointRadius:3, spanGaps:false}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{legend:LEG, tooltip:{...TT, callbacks:{label:c=>' '+c.dataset.label+' '+(c.parsed.y==null?'—':c.parsed.y+'%')}}},
+    scales:{
+      y:{beginAtZero:true, grid:GRID, border:{display:false}, ticks:{callback:PCT},
+         title:{display:true, text:'集中度 %', color:'#64748b', font:{size:11}}},
+      x:{grid:{display:false}, border:{display:false}}
+    }
+  }
+});
+
+/* ── 04 波特五力（雷达） ─────────────────────────────────────── */
+new Chart(document.getElementById('c-five'), {
+  type:'radar',
+  data:{
+    labels:['现有竞争者','新进入者威胁','替代品威胁','供应商议价','购买者议价'],  /* ✎ 可按需改文案 */
+    datasets:[{label:'压力强度', data:[3,3,3,3,3],                /* ✎ 替换，1–5 */
+      borderColor:CYAN, backgroundColor:'rgba(167,139,250,.18)',
+      borderWidth:2, pointBackgroundColor:CYAN, pointRadius:4}]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:TT},
+    scales:{r:{
+      min:0, max:5, ticks:{stepSize:1, backdropColor:'transparent', color:'#64748b'},
+      grid:{color:'#16203a'}, angleLines:{color:'#16203a'},
+      pointLabels:{color:'#94a3b8', font:{size:12}}
+    }}
+  }
+});
+
+/* ── 05 价格走势（折线，历史段/预测段分色） ──────────────────── */
+new Chart(document.getElementById('c-price'), {
+  type:'line',
+  data:{
+    labels:['2022','2023','2024','2025','2026E'],                /* ✎ 替换 */
+    datasets:[
+      {label:'实际', data:[0,0,0,null,null],                     /* ✎ 替换 */
+       borderColor:CYAN, backgroundColor:'rgba(167,139,250,.10)', fill:true,
+       tension:.32, borderWidth:2, pointRadius:3, spanGaps:false},
+      {label:'预测', data:[null,null,0,0,0],                     /* ✎ 替换 */
+       borderColor:MUTE, borderDash:[5,4], backgroundColor:MUTE,
+       tension:.32, borderWidth:2, pointRadius:3, spanGaps:false}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{legend:LEG, tooltip:TT},
+    scales:{
+      y:{grid:GRID, border:{display:false},
+         title:{display:true, text:'{{单位}}', color:'#64748b', font:{size:11}}},
+      x:{grid:{display:false}, border:{display:false}}
+    }
+  }
+});
+
+/* ── 06 三情景路径（多线，历史段灰） ─────────────────────────── */
+new Chart(document.getElementById('c-scenario'), {
+  type:'line',
+  data:{
+    labels:['2024','2025','2026E','2027E','2028E'],              /* ✎ 替换 */
+    datasets:[
+      {label:'历史', data:[0,0,null,null,null], borderColor:MUTE, backgroundColor:MUTE,
+       tension:.32, borderWidth:2.5, pointRadius:3, spanGaps:false},
+      {label:'乐观', data:[null,0,0,0,0], borderColor:UP, backgroundColor:UP,
+       tension:.32, borderWidth:2, pointRadius:2, spanGaps:false},
+      {label:'中性', data:[null,0,0,0,0], borderColor:CYAN, backgroundColor:CYAN,
+       tension:.32, borderWidth:2, pointRadius:2, spanGaps:false},
+      {label:'悲观', data:[null,0,0,0,0], borderColor:DOWN, backgroundColor:DOWN,
+       tension:.32, borderWidth:2, pointRadius:2, spanGaps:false}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{legend:LEG, tooltip:TT},
+    scales:{
+      y:{beginAtZero:true, grid:GRID, border:{display:false},
+         title:{display:true, text:'{{单位}}', color:'#64748b', font:{size:11}}},
+      x:{grid:{display:false}, border:{display:false}}
+    }
+  }
+});
+
+/* ── 回到顶部 ─────────────────────────────────────────────────── */
+document.querySelector('.btt').addEventListener('click', e=>{
+  e.preventDefault(); window.scrollTo({top:0, behavior:'smooth'});
+});
+</script>
+</body>
+</html>
