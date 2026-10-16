@@ -8,7 +8,7 @@
 |-------|----------|
 | **hot-analysis** | GitHub 热门项目深度分析引擎——抓取 Trending 或指定任意项目，按 5 块框架生成交互 HTML 长页 + 海报级卡片 PNG + 素材 |
 | **hot-compare** | GitHub 项目横向对比——2-5 个项目按 5 模块方法论对比，输出长页 HTML + 海报卡片 PNG + 素材 |
-| **ui-pipeline** | 三阶 UI 设计流水线——taste-skill 定审美 → UI UX Pro Max 出设计系统 → shadcn/ui 落组件，支持 6 种灵活模式 |
+| **ui-pipeline** | 三阶 UI 设计流水线——taste-skill v2 定审美（dial-free，公开页走 draw/inspector，B端走 craft laws）→ UI UX Pro Max 出设计系统 → shadcn/ui 落组件，支持 6 种灵活模式 |
 | **wechat-publisher** | 公众号发布一条龙——写稿+配图+审稿+排版+推微信草稿箱，单 skill 全流程/单环节/恢复三模式自动路由 |
 | **adversarial-review** | 对抗性代码审查——Red Team 攻击 + Blue Team 辩护 + 主 Agent 裁决 + 自动修复 + QA 验证，6 阶段闭环 |
 | **LBJ-行业分析** | 端到端行业研究——输入行业名，出 10 章交互式 HTML 报告；口径分歧矩阵 + 回源核验 + 28 项结构门禁，所有数字可回溯 |
@@ -162,7 +162,7 @@ compare A/B and C/D
 
 ## 🎨 ui-pipeline — 三阶 UI 设计流水线
 
-taste-skill（审美定调）→ UI UX Pro Max（设计系统）→ shadcn/ui（组件落地），支持 6 种灵活模式按需组合。
+taste-skill v2（审美定调，公开页走 draw/inspector 全流程，B端/dashboard 走 craft laws 审美红线）→ UI UX Pro Max（设计系统）→ shadcn/ui（组件落地），支持 6 种灵活模式按需组合。
 
 ### 6 种工作模式
 
@@ -184,7 +184,7 @@ taste-skill（审美定调）→ UI UX Pro Max（设计系统）→ shadcn/ui（
 
 ### 核心流程
 
-1. **taste-skill 审美定调** — 根据产品类型自动匹配 VARIANCE / DENSITY / MOTION 三参数，锁定审美方向
+1. **taste-skill v2 审美定调** — 公开页用 `draw.mjs` 抽方向 + `inspect.mjs` 真浏览器门禁；B端/dashboard 走 v2 提炼的 craft laws 审美红线（v2 明确不适用 dashboard，旧 V/D/M 拨盘已废弃）
 2. **UI UX Pro Max 设计系统** — 生成行业色板、字体配对、UI 风格、Anti-patterns 检测，输出设计 Token
 3. **shadcn/ui 组件落地** — 将设计 Token 转化为 React/Tailwind 组件代码，支持 Web / 小程序 / 移动端
 
